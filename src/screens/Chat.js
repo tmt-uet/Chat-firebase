@@ -37,7 +37,7 @@ export default class Chat extends React.Component {
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
     this.onSend=this.onSend.bind(this)
-    this.userAvatar=this.getAvatar(email)
+    this.getAvatar(res=>{this.userAvatar=res})
     console.log("avatarrrrrrrrrrrrrr       "+this.userAvatar)
   
   }
@@ -49,14 +49,13 @@ export default class Chat extends React.Component {
     return FirebaseSvc.database().ref()
   }
 
-  getAvatar=async(email)=>{
+  getAvatar(callback){
     
-    const userRef= await this.getRef().child("users")
+    const userRef= this.getRef().child("users")
     userRef.on("value",snap=>{
       snap.forEach(child=>{
         if(child.val().email==email)
-          console.log("ahihihihihihih"+ child.val().avatar)
-          return child.val().avatar
+          callback(child.val().avatar)
 
 
       })
@@ -74,7 +73,7 @@ export default class Chat extends React.Component {
           createdAt: new Date(child.val().createdAt),
           user: {
             _id: child.val().uid,
-            avatar:'https://placeimg.com/140/140/any',
+            avatar:this.userAvatar,
           }
         });
       });
@@ -118,12 +117,10 @@ export default class Chat extends React.Component {
         _id: now,
         text: message.text,
         createdAt: now,
-        user:{
-          uid: this.user.uid,
-          avatar:'https://placeimg.com/640/480/people',
-        },
+        uid: this.user.uid,
+        order: -1 * now,
 
-        order: -1 * now
+        
       });
     });
   }

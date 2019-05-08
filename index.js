@@ -12,10 +12,10 @@ import {name as appName} from './app.json';
 //import Home from './src/screens/Home'
 //import GG from './GG'
 import RootNavigation from './src/navigations/RootNavigation'
-//import TestFireBase from './TestFireBase'
+import TestFireBase from './TestFireBase'
 
 
-AppRegistry.registerComponent(appName, () => RootNavigation);
+AppRegistry.registerComponent(appName, () => TestFireBase);
 
 
 
