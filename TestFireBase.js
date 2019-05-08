@@ -25,7 +25,7 @@ export default class TestFireBase extends Component {
   constructor(props){
     super(props);
     this.state={
-      avatarSource:null,
+      avatarSource: null,
     }
   }
   // componentWillMount(){
@@ -60,10 +60,10 @@ export default class TestFireBase extends Component {
 } 
   render() {
     return (
-      <View>
-        <TouchableOpacity onPress={this.pickImage()}>
+      <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+        <TouchableOpacity onPress={()=>{this.pickImage()}}>
           <Image source={this.state.avatarSource} style={{height:150,width:120}}/>
-          <Text>Upload File</Text>
+          <Text style={{color:'green',fontSize:30}}>Upload File</Text>
         </TouchableOpacity>
         
       </View>
