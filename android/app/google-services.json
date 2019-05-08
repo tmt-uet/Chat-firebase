@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "1096520825590",
+    "firebase_url": "https://chat-app-87fd5.firebaseio.com",
+    "project_id": "chat-app-87fd5",
+    "storage_bucket": "chat-app-87fd5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096520825590:android:f7e0b9f65eebb669",
+        "android_client_info": {
+          "package_name": "tung.sociu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096520825590-0hf7dh2d3196g2j5inuc00bkjldvi1v0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tung.sociu",
+            "certificate_hash": "92f4992a4e402d692488b20ef78d452c09ea4a41"
+          }
+        },
+        {
+          "client_id": "1096520825590-r11qb507bd9n6pg8urmqumsof5q9rc7v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tung.sociu",
+            "certificate_hash": "6328138b58474cac14a2912ea8ba000527847137"
+          }
+        },
+        {
+          "client_id": "1096520825590-07asd0rnrqrg8hqlohpodg034j14c4d9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQP37zn7Ulf52gOPG9goJGIeTwGJURW2g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096520825590-07asd0rnrqrg8hqlohpodg034j14c4d9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
