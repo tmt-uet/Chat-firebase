@@ -1,82 +1,423 @@
-//import firebaseApp from './src/FirebaseConfig'
-import React ,{Component} from 'react'
-import {AppRegistry, StyleSheet, Text,View,Button} from 'react-native';
-import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
-// GoogleSignin.configure({
-//     webClientId:'1096520825590-07asd0rnrqrg8hqlohpodg034j14c4d9.apps.googleusercontent.com',
-//     offlineAccess: true,
-// });
-import firebase from 'firebase';
+import React, { Component } from "react";
+import { GiftedChat, Bubble } from "react-native-gifted-chat";
+import { ActionConst, Actions } from "react-native-router-flux";
+import {
+    View,
+    Text,
+    Platform,
+    PermissionsAndroid,
+    Dimensions,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView
+} from "react-native";
+import { AudioRecorder, AudioUtils } from "react-native-audio";
+import propTypes from "prop-types";
+import { RNS3 } from "react-native-aws3";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import Sound from "react-native-sound";
+import { firebaseDB } from "../config/FirebaseConfig";
+import NavigationBar from "react-native-navbar";
+import AwsConfig from "../config/AwsConfig"
 
-const config = {
-    apiKey: "AIzaSyAIP8Ug0OqI5Rxv29HK8hMYTWNrgG8Yvoc",
-    authDomain: "chat-app-87fd5.firebaseapp.com",
-    databaseURL: "https://chat-app-87fd5.firebaseio.com",
-    projectId: "chat-app-87fd5",
-    storageBucket: "chat-app-87fd5.appspot.com",
-    messagingSenderId: "1096520825590"
-  };
-firebase.initializeApp(config);
-export default class GG extends Component {
-    constructor(props) {
-        super(props);
-        this.unsubscriber = null;
-        this.state = {
-            isAuthenticated: false,
-            typedEmail: '',
-            typedPassword: '',
-            user: null,
-        };
+const ImagePicker = require("react-native-image-picker");
+
+export default class Chat extends Component {
+    static propTypes = {
+        user: propTypes.object,
+    };
+    state = {
+        messages: [],
+        startAudio: false,
+        hasPermission: false,
+        audioPath: `${
+            AudioUtils.DocumentDirectoryPath
+            }/${this.messageIdGenerator()}test.aac`,
+        playAudio: false,
+        fetchChats: false,
+        audioSettings: {
+            SampleRate: 22050,
+            Channels: 1,
+            AudioQuality: "Low",
+            AudioEncoding: "aac",
+            MeteringEnabled: true,
+            IncludeBase64: true,
+            AudioEncodingBitRate: 32000
+        }
+    };
+    componentWillMount() {
+        console.log(AwsConfig, "awsconfig")
+        console.log(this.props, "chat props")
+        this.chatsFromFB = firebaseDB.ref(`/chat/${this.props.user.roomName}`);
+        console.log(this.chatsFromFB, "chats from fb")
+        this.chatsFromFB.on("value", snapshot => {
+            console.log(snapshot.val(), "snap shot")
+            if (!snapshot.val()) {
+                this.setState({
+                    fetchChats: true
+                });
+                return;
+            }
+            let { messages } = snapshot.val();
+            messages = messages.map(node => {
+                console.log(node, "node")
+                const message = {};
+                message._id = node._id;
+                message.text = node.messageType === "message" ? node.text : "";
+                message.createdAt = node.createdAt;
+                message.user = {
+                    _id: node.user._id,
+                    name: node.user.name,
+                    avatar: node.user.avatar
+                };
+                message.image = node.messageType === "image" ? node.image : "";
+                message.audio = node.messageType === "audio" ? node.audio : "";
+                message.messageType = node.messageType;
+                return message;
+            });
+            this.setState({
+                messages: [...messages]
+            });
+        });
     }
     componentDidMount() {
-        this.unsubscriber = firebase.auth().onAuthStateChanged((changedUser) => {
-            // console.log(`changed User : ${JSON.stringify(changedUser.toJSON())}`);
-            this.setState({ user: changedUser });
+        this.checkPermission().then(async hasPermission => {
+            this.setState({ hasPermission });
+            if (!hasPermission) return;
+            await AudioRecorder.prepareRecordingAtPath(
+                this.state.audioPath,
+                this.state.audioSettings
+            );
+            AudioRecorder.onProgress = data => {
+                console.log(data, "onProgress data");
+            };
+            AudioRecorder.onFinished = data => {
+                console.log(data, "on finish");
+            };
         });
-        GoogleSignin.configure({
-            webClientId:'1096520825590-0hf7dh2d3196g2j5inuc00bkjldvi1v0.apps.googleusercontent.com',
-            offlineAccess: true,
-        })
-        // .then(() => {
-        //     // you can now call currentUserAsync()
-        // });
     }
     componentWillUnmount() {
-        if (this.unsubscriber) {
-            this.unsubscriber();
+        this.setState({
+            messages: []
+        });
+    }
+
+    checkPermission() {
+        if (Platform.OS !== "android") {
+            return Promise.resolve(true);
+        }
+        const rationale = {
+            title: "Microphone Permission",
+            message:
+                "AudioExample needs access to your microphone so you can record audio."
+        };
+        return PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            rationale
+        ).then(result => {
+            console.log("Permission result:", result);
+            return result === true || result === PermissionsAndroid.RESULTS.GRANTED;
+        });
+    }
+    onSend(messages = []) {
+        messages[0].messageType = "message";
+        this.chatsFromFB.update({
+            messages: [messages[0], ...this.state.messages]
+        });
+    }
+    renderName = props => {
+        const { user: self } = this.props; // where your user data is stored;
+        const { user = {} } = props.currentMessage;
+        const { user: pUser = {} } = props.previousMessage;
+        const isSameUser = pUser._id === user._id;
+        const isSelf = user._id === self._Id;
+        const shouldNotRenderName = isSameUser;
+        let firstName = user.name.split(" ")[0];
+        let lastName = user.name.split(" ")[1][0];
+        return shouldNotRenderName ? (
+            <View />
+        ) : (
+                <View>
+                    <Text style={{ color: "grey", padding: 2, alignSelf: "center" }}>
+                        {`${firstName} ${lastName}.`}
+                    </Text>
+                </View>
+            );
+    };
+    renderAudio = props => {
+        return !props.currentMessage.audio ? (
+            <View />
+        ) : (
+                <Ionicons
+                    name="ios-play"
+                    size={35}
+                    color={this.state.playAudio ? "red" : "blue"}
+                    style={{
+                        left: 90,
+                        position: "relative",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 0.5,
+                        backgroundColor: "transparent"
+                    }}
+                    onPress={() => {
+                        this.setState({
+                            playAudio: true
+                        });
+                        const sound = new Sound(props.currentMessage.audio, "", error => {
+                            if (error) {
+                                console.log("failed to load the sound", error);
+                            }
+                            this.setState({ playAudio: false });
+                            sound.play(success => {
+                                console.log(success, "success play");
+                                if (!success) {
+                                    Alert.alert("There was an error playing this audio");
+                                }
+                            });
+                        });
+                    }}
+                />
+            );
+    };
+    renderBubble = props => {
+        return (
+            <View>
+                {this.renderName(props)}
+                {this.renderAudio(props)}
+                <Bubble {...props} />
+            </View>
+        );
+    };
+    handleAvatarPress = props => {
+        // add navigation to user's profile
+    };
+    handleAudio = async () => {
+        const { user } = this.props;
+        if (!this.state.startAudio) {
+            this.setState({
+                startAudio: true
+            });
+            await AudioRecorder.startRecording();
+        } else {
+            this.setState({ startAudio: false });
+            await AudioRecorder.stopRecording();
+            const { audioPath } = this.state;
+            const fileName = `${this.messageIdGenerator()}.aac`;
+            const file = {
+                uri: Platform.OS === "ios" ? audioPath : `file://${audioPath}`,
+                name: fileName,
+                type: `audio/aac`
+            };
+            const options = {
+                keyPrefix: AwsConfig.keyPrefix,
+                bucket: AwsConfig.bucket,
+                region: AwsConfig.region,
+                accessKey: AwsConfig.accessKey,
+                secretKey: AwsConfig.secretKey,
+            };
+            RNS3.put(file, options)
+                .progress(event => {
+                    console.log(`percent: ${event.percent}`);
+                })
+                .then(response => {
+                    console.log(response, "response from rns3 audio");
+                    if (response.status !== 201) {
+                        alert("Something went wrong, and the audio was not uploaded.");
+                        console.error(response.body);
+                        return;
+                    }
+                    const message = {};
+                    message._id = this.messageIdGenerator();
+                    message.createdAt = Date.now();
+                    message.user = {
+                        _id: user._id,
+                        name: `${user.firstName} ${user.lastName}`,
+                        avatar: user.avatar
+                    };
+                    message.text = "";
+                    message.audio = response.headers.Location;
+                    message.messageType = "audio";
+
+                    this.chatsFromFB.update({
+                        messages: [message, ...this.state.messages]
+                    });
+                })
+                .catch(err => {
+                    console.log(err, "err from audio upload");
+                });
+        }
+    };
+    messageIdGenerator() {
+        // generates uuid.
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+            let r = (Math.random() * 16) | 0,
+                v = c == "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    }
+    sendChatToDB(data) {
+        // send your chat to your db
+    }
+    handleAddPicture = () => {
+        const { user } = this.props; // wherever you user data is stored;
+        const options = {
+            title: "Select Profile Pic",
+            mediaType: "photo",
+            takePhotoButtonTitle: "Take a Photo",
+            maxWidth: 256,
+            maxHeight: 256,
+            allowsEditing: true,
+            noData: true
+        };
+        ImagePicker.showImagePicker(options, response => {
+            console.log("Response = ", response);
+            if (response.didCancel) {
+                // do nothing
+            } else if (response.error) {
+                // alert error
+            } else {
+                const { uri } = response;
+                const extensionIndex = uri.lastIndexOf(".");
+                const extension = uri.slice(extensionIndex + 1);
+                const allowedExtensions = ["jpg", "jpeg", "png"];
+                const correspondingMime = ["image/jpeg", "image/jpeg", "image/png"];
+                const options = {
+                    keyPrefix: AwsConfig.keyPrefix,
+                    bucket: AwsConfig.bucket,
+                    region: AwsConfig.region,
+                    accessKey: AwsConfig.accessKey,
+                    secretKey: AwsConfig.secretKey,
+                };
+                const file = {
+                    uri,
+                    name: `${this.messageIdGenerator()}.${extension}`,
+                    type: correspondingMime[allowedExtensions.indexOf(extension)]
+                };
+                RNS3.put(file, options)
+                    .progress(event => {
+                        console.log(`percent: ${event.percent}`);
+                    })
+                    .then(response => {
+                        console.log(response, "response from rns3");
+                        if (response.status !== 201) {
+                            alert(
+                                "Something went wrong, and the profile pic was     not uploaded."
+                            );
+                            console.error(response.body);
+                            return;
+                        }
+                        const message = {};
+                        message._id = this.messageIdGenerator();
+                        message.createdAt = Date.now();
+                        message.user = {
+                            _id: user._id,
+                            name: `${user.firstName} ${user.lastName}`,
+                            avatar: user.avatar
+                        };
+                        message.image = response.headers.Location;
+                        message.messageType = "image";
+
+                        this.chatsFromFB.update({
+                            messages: [message, ...this.state.messages]
+                        });
+                    });
+                if (!allowedExtensions.includes(extension)) {
+                    return alert("That file type is not allowed.");
+                }
+            }
+        });
+    };
+    renderAndroidMicrophone() {
+        if (Platform.OS === "android") {
+            return (
+                <Ionicons
+                    name="ios-mic"
+                    size={35}
+                    hitSlop={{ top: 20, bottom: 20, left: 50, right: 50 }}
+                    color={this.state.startAudio ? "red" : "black"}
+                    style={{
+                        bottom: 50,
+                        right: Dimensions.get("window").width / 2,
+                        position: "absolute",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 0.5,
+                        zIndex: 2,
+                        backgroundColor: "transparent"
+                    }}
+                    onPress={this.handleAudio}
+                />
+            );
+        }
+    }
+    renderLoading() {
+        if (!this.state.messages.length && !this.state.fetchChats) {
+            return (
+                <View style={{ marginTop: 100 }}>
+                    <ActivityIndicator color="black" animating size="large" />
+                </View>
+            );
         }
     }
 
 
-
-
-
-    onLoginGoogle = () => {
-        GoogleSignin
-            .signIn()
-            .then((data) => {
-                // create a new firebase credential with the token
-                const credential = firebase.auth.GoogleAuthProvider.credential(data.idToken, data.accessToken);
-                // login with credential
-                return firebase.auth().signInWithCredential(credential);
-            })
-            .then((currentUser) => {
-                console.log(`Google Login with user : ${JSON.stringify(currentUser.toJSON())}`);
-            })
-            .catch((error) => {
-                console.log(`Login fail with error: ${error}`);
-            });
-    }
-
     render() {
-        return(        
-            <GoogleSigninButton
-                style={{ width: 192, height: 48 }}
-                size={GoogleSigninButton.Size.Wide}
-                color={GoogleSigninButton.Color.Dark}
-                onPress={this.onLoginGoogle}
-                //disabled={this.state.isSigninInProgress} 
+        const { user } = this.props; // wherever you user info is
+        console.log('chat render', user)
+        const rightButtonConfig = {
+            title: 'Add photo',
+            handler: () => this.handleAddPicture(),
+        };
+        return (
+            <View style={{ flex: 1 }}>
+                <NavigationBar
+                    title={{ title: "chat" }}
+                    rightButton={rightButtonConfig}
                 />
-        )}
-
+                {this.renderLoading()}
+                {this.renderAndroidMicrophone()}
+                <GiftedChat
+                    messages={this.state.messages}
+                    onSend={messages => this.onSend(messages)}
+                    alwaysShowSend
+                    showUserAvatar
+                    isAnimated
+                    showAvatarForEveryMessage
+                    renderBubble={this.renderBubble}
+                    messageIdGenerator={this.messageIdGenerator}
+                    onPressAvatar={this.handleAvatarPress}
+                    renderActions={() => {
+                        if (Platform.OS === "ios") {
+                            return (
+                                <Ionicons
+                                    name="ios-mic"
+                                    size={35}
+                                    hitSlop={{ top: 20, bottom: 20, left: 50, right: 50 }}
+                                    color={this.state.startAudio ? "red" : "black"}
+                                    style={{
+                                        bottom: 50,
+                                        right: Dimensions.get("window").width / 2,
+                                        position: "absolute",
+                                        shadowColor: "#000",
+                                        shadowOffset: { width: 0, height: 0 },
+                                        shadowOpacity: 0.5,
+                                        zIndex: 2,
+                                        backgroundColor: "transparent"
+                                    }}
+                                    onPress={this.handleAudio}
+                                />
+                            );
+                        }
+                    }}
+                    user={{
+                        _id: user._id,
+                        name: `${user.firstName} ${user.lastName}`,
+                        avatar: user.avatar
+                    }}
+                />
+                <KeyboardAvoidingView />
+            </View>
+        );
+    }
 }

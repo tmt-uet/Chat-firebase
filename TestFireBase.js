@@ -48,6 +48,8 @@ export default class TestFireBase extends Component {
       console.log('User tapped custom button: ', response.customButton);
     } else {
       const source = { uri: response.uri };
+      console.log("anh day nayyyyyyyyy     "+source.uri)
+      // console.log(source)
   
       // You can also display the image using data:
       // const source = { uri: 'data:image/jpeg;base64,' + response.data };
@@ -57,7 +59,9 @@ export default class TestFireBase extends Component {
       });
     }
   });
+
 } 
+
   render() {
     return (
       <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>

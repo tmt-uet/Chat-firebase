@@ -11,17 +11,8 @@ import {
 } from "react-native";
 import { StackNavigator } from "react-navigation";
 import { GiftedChat } from "react-native-gifted-chat";
-import ImagePicker from 'react-native-image-picker';
 
-import NavigationBar from "react-native-navbar";
-var options = {
-  title: 'Select Avatar',
-  customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
-  storageOptions: {
-    skipBackup: true,
-    path: 'images',
-  },
-};
+
 var name, uid, email;
 import FirebaseSvc from '../FirebaseSvc'
 
@@ -83,8 +74,7 @@ export default class Chat extends React.Component {
           user: {
             _id: child.val().uid,
             avatar:this.userAvatar,
-          },
-          image:child.val().image
+          }
         });
       });
 
@@ -118,9 +108,9 @@ export default class Chat extends React.Component {
   }
 
   onSend(messages = []) {
-    this.setState({
-        messages: GiftedChat.append(this.state.messages, messages),
-    });
+    // this.setState({
+    //     messages: GiftedChat.append(this.state.messages, messages),
+    // });
     messages.forEach(message => {
       var now = new Date().getTime();
       this.chatRef.push({
@@ -129,98 +119,21 @@ export default class Chat extends React.Component {
         createdAt: now,
         uid: this.user.uid,
         order: -1 * now,
-        image:''
 
         
       });
     });
-    console.log(this.state.messages)
   }
-  sendImageToFb(message){
-    var now = new Date().getTime();
-    this.chatRef.push({
-      _id: now,
-      text: message.text,
-      createdAt: now,
-      uid: this.user.uid,
-      // uid: this.user.uid,
-      order: -1 * now,
-      // messageType:message.messageType,
-      image: message.image
-
-      
-    });
-  }
-  pickImage(){
-    ImagePicker.showImagePicker(options, (response) => {
-      // console.log('Response = ', response);
-    
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
-      } else {
-        const source = { uri: response.uri };
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-
-        console.log("anh day nayyyyyyyyy     "+source.uri)
-
-        // console.log(source)
-        const message={}
-        let now = new Date().getTime();
-        message.createdAt=now,
-        message.uid=this.user.uid,
-
-        message._id=now
-        message.text=''
-        // message.user={}
-        // message.user._id=this.user.uid
-
-        // message.user.avatar='https://placeimg.com/640/480/people'
-        message.order = -1*now
-        message.image=source.uri
-        // message.messageType='image'
-        // console.log("object cua anh nayyyyyyyy          "+message.image)
-        // You can also display the image using data:
-        
-        // this.setState({
-        //   avatarSource: source,
-        // });
-
-        this.setState({
-          // messages: [message, ...this.state.messages]
-          messages: GiftedChat.append(this.state.messages, message),
-
-      });
-      console.log(this.state.messages)
-      this.sendImageToFb(message)
-
-      }
-    });
-  
-  } 
 
   render() {
-    const rightButtonConfig = {
-      title: 'Add photo',
-      handler: () => this.pickImage(),
-  };
     return (
-      <View style={{ flex: 1 }}>
-        <NavigationBar
-            title={{ title: "chat" }}
-            rightButton={rightButtonConfig}
-        />
-        <GiftedChat
-          messages={this.state.messages}
-          onSend={this.onSend.bind(this)}
-          user={{
-            _id: this.user.uid
-          }}
-        />
-      </View>
+      <GiftedChat
+        messages={this.state.messages}
+        onSend={this.onSend.bind(this)}
+        user={{
+          _id: this.user.uid
+        }}
+      />
     );
   }
 }

@@ -13,9 +13,9 @@ import {name as appName} from './app.json';
 //import GG from './GG'
 import RootNavigation from './src/navigations/RootNavigation'
 import TestFireBase from './TestFireBase'
+import test_Image from './test_Image'
 
-
-AppRegistry.registerComponent(appName, () => TestFireBase);
+AppRegistry.registerComponent(appName, () => RootNavigation);
 
 
 
