@@ -14,12 +14,21 @@ import createAccount from '../screens/createAccount'
 
 
 
-
+const pressAvatar= createStackNavigator(
+  {
+    
+    Chat: Chat,
+    Personalize:Personalize
+  },
+  {
+    initialRouteName:'Chat'
+  }
+)
 
 const ListChatStack= createStackNavigator(
   {
     ListChat: ListChat,
-    Chat: Chat
+    Chat: pressAvatar
   },
   {
     initialRouteName:'ListChat'

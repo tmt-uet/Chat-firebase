@@ -12,6 +12,7 @@ import {
 import { StackNavigator } from "react-navigation";
 import { GiftedChat } from "react-native-gifted-chat";
 import ImagePicker from 'react-native-image-picker';
+import propTypes from "prop-types";
 
 import NavigationBar from "react-native-navbar";
 var options = {
@@ -22,10 +23,13 @@ var options = {
     path: 'images',
   },
 };
-var name, uid, email;
+var name, uid, email;         //luu thong tin cuar thang trong room chat
 import FirebaseSvc from '../FirebaseSvc'
 
 export default class Chat extends React.Component {
+//   static propTypes = {
+//     user: propTypes.object,
+// };
   constructor(props){
     super(props)
     state = {
@@ -46,7 +50,7 @@ export default class Chat extends React.Component {
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
     this.onSend=this.onSend.bind(this)
-    this.getAvatar(res=>{this.userAvatar=res})
+    this.getAvatar(res=>{this.userAvatar=res})          //lay ra avatar cua thang trong room chat
     console.log("avatarrrrrrrrrrrrrr       "+this.userAvatar)
   
   }
@@ -83,10 +87,13 @@ export default class Chat extends React.Component {
           user: {
             _id: child.val().uid,
             avatar:this.userAvatar,
+            // avatar:child.val().avatar,
+            // name:'tung nayf'
           },
           image:child.val().image
         });
       });
+      // console.log("thu in ra avatarrrrrrrrrrrrrrrrr         "+)
 
       this.setState({
         loading: false,
@@ -117,7 +124,7 @@ export default class Chat extends React.Component {
     })
   }
 
-  onSend(messages = []) {
+  onSend=(messages = []) =>{
     this.setState({
         messages: GiftedChat.append(this.state.messages, messages),
     });
@@ -128,6 +135,10 @@ export default class Chat extends React.Component {
         text: message.text,
         createdAt: now,
         uid: this.user.uid,
+        // user:{
+        //   uid: this.user.uid,
+        //   // avatar: this.user.avatar
+        // },
         order: -1 * now,
         image:''
 
@@ -201,6 +212,9 @@ export default class Chat extends React.Component {
     });
   
   } 
+  // handleAvatarPress(){
+  //   this.props.navigation.nivagate('Personalize')
+  // }
 
   render() {
     const rightButtonConfig = {
@@ -215,9 +229,16 @@ export default class Chat extends React.Component {
         />
         <GiftedChat
           messages={this.state.messages}
+          showUserAvatar
+          isAnimated
+          showAvatarForEveryMessage
           onSend={this.onSend.bind(this)}
+          onPressAvatar={this.handleAvatarPress}
+          // onSend={messages => this.onSend(messages)}
           user={{
-            _id: this.user.uid
+            _id: this.user.uid,
+            avatar:"https://placeimg.com/640/480/people",
+            name:this.user.name,
           }}
         />
       </View>
