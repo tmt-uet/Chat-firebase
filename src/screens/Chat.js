@@ -7,7 +7,8 @@ import {
   ListView,
   Image,
   Button,
-  TextInput
+  TextInput,
+  Platform
 } from "react-native";
 import { StackNavigator } from "react-navigation";
 import { GiftedChat } from "react-native-gifted-chat";
@@ -52,6 +53,7 @@ export default class Chat extends React.Component {
     this.onSend=this.onSend.bind(this)
     this.getAvatar(res=>{this.userAvatar=res})          //lay ra avatar cua thang trong room chat
     console.log("avatarrrrrrrrrrrrrr       "+this.userAvatar)
+    this.getAvatarSender(res=>{this.senderAvatar=res})
   
   }
   generateChatId(){
@@ -60,6 +62,19 @@ export default class Chat extends React.Component {
   }
   getRef(){
     return FirebaseSvc.database().ref()
+  }
+  getAvatarSender(callback){
+    
+    const userRef= this.getRef().child("users")
+    userRef.on("value",snap=>{
+      snap.forEach(child=>{
+        if(child.val().email==this.user.email)
+          callback(child.val().avatar)
+
+
+      })
+    })
+
   }
 
   getAvatar(callback){
@@ -87,7 +102,8 @@ export default class Chat extends React.Component {
           createdAt: new Date(child.val().createdAt),
           user: {
             _id: child.val().uid,
-            avatar:child.val().avatar
+            avatar:child.val().avatar,
+            name:child.val().name
           },
           image:child.val().image
         });
@@ -139,7 +155,7 @@ export default class Chat extends React.Component {
         //   uid: this.user.uid,
         //   // avatar: this.user.avatar
         // },
-        avatar:"https://placeimg.com/640/480/nature",
+        avatar:this.senderAvatar,
         order: -1 * now,
         image:''
       });
@@ -154,15 +170,14 @@ export default class Chat extends React.Component {
       text: message.text,
       createdAt: now,
       uid: this.user.uid,
-      // uid: this.user.uid,
       order: -1 * now,
-      // messageType:message.messageType,
+      avatar:message.avatar,
       image: message.image
     });
   }
 
-  pickImage(){
-    ImagePicker.showImagePicker(options, (response) => {
+  TakePhoto=()=>{
+    ImagePicker.launchCamera(options, (response) => {
       // console.log('Response = ', response);
     
       if (response.didCancel) {
@@ -185,22 +200,14 @@ export default class Chat extends React.Component {
 
         message._id=now
         message.text=''
-        // message.user={}
-        // message.user._id=this.user.uid
 
-        // message.user.avatar='https://placeimg.com/640/480/people'
+
+        message.avatar=this.senderAvatar
         message.order = -1*now
         message.image=source.uri
-        // message.messageType='image'
-        // console.log("object cua anh nayyyyyyyy          "+message.image)
-        // You can also display the image using data:
-        
-        // this.setState({
-        //   avatarSource: source,
-        // });
+
 
         this.setState({
-          // messages: [message, ...this.state.messages]
           messages: GiftedChat.append(this.state.messages, message),
 
       });
@@ -211,20 +218,122 @@ export default class Chat extends React.Component {
     });
   
   } 
-  // handleAvatarPress(){
-  //   this.props.navigation.nivagate('Personalize')
-  // }
+  ChoosePhoto=()=>{
+    ImagePicker.launchImageLibrary(options, (response) => {
+      // console.log('Response = ', response);
+    
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = { uri: response.uri };
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
+        console.log("anh day nayyyyyyyyy     "+source.uri)
+
+        // console.log(source)
+        const message={}
+        let now = new Date().getTime();
+        message.createdAt=now,
+        message.uid=this.user.uid,
+
+        message._id=now
+        message.text=''
+
+
+        message.avatar=this.senderAvatar
+        message.order = -1*now
+        message.image=source.uri
+
+
+        this.setState({
+          messages: GiftedChat.append(this.state.messages, message),
+
+      });
+      console.log(this.state.messages)
+      this.sendImageToFb(message)
+
+      }
+    });
+  
+  }
+
+
+  handleAvatarPress=(temp_user)=>{
+    console.log('------------------------')
+    console.log(temp_user)
+    this.props.navigation.navigate('Personalize')
+  }
+
+  renderAudio = props => {
+    return !props.currentMessage.audio ? (
+        <View />
+    ) : (
+            <Ionicons
+                name="ios-play"
+                size={35}
+                color={this.state.playAudio ? "red" : "blue"}
+                style={{
+                    left: 90,
+                    position: "relative",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.5,
+                    backgroundColor: "transparent"
+                }}
+                onPress={() => {
+                    this.setState({
+                        playAudio: true
+                    });
+                    const sound = new Sound(props.currentMessage.audio, "", error => {
+                        if (error) {
+                            console.log("failed to load the sound", error);
+                        }
+                        this.setState({ playAudio: false });
+                        sound.play(success => {
+                            console.log(success, "success play");
+                            if (!success) {
+                                Alert.alert("There was an error playing this audio");
+                            }
+                        });
+                    });
+                }}
+            />
+        );
+};
+  handleAudio(){
+    console.log('an dc nheseeeeeeeeeeeee')
+  }
+
+  // static navigationOptions = {
+  //   headerStyle: {
+  //     backgroundColor: "#16a085",
+  //     elevation: null
+  //   },
+  //   headerRight: (
+  //     <TouchableOpacity onPress={this.handleAudio}>
+  //       <Text>Add Photo</Text>
+  //     </TouchableOpacity>
+  //   )
+  // };
   render() {
     const rightButtonConfig = {
-      title: 'Add photo',
-      handler: () => this.pickImage(),
+      title: 'Take a photo',
+      handler: () => this.TakePhoto(),
   };
+    const leftButtonConfig={
+      title:'Choose a Photo',
+      handler: ()=>this.ChoosePhoto()
+    }
     return (
       <View style={{ flex: 1 }}>
         <NavigationBar
-            title={{ title: "chat" }}
+            title={{ title: name }}
             rightButton={rightButtonConfig}
+            leftButton={leftButtonConfig}
         />
         <GiftedChat
           messages={this.state.messages}
@@ -235,8 +344,30 @@ export default class Chat extends React.Component {
           onPressAvatar={this.handleAvatarPress}
           user={{
             _id: this.user.uid,
-            // avatar:"https://placeimg.com/640/480/nature"
           }}
+          renderActions={() => {
+            if (Platform.OS === "ios") {
+                return (
+                    <Ionicons
+                        name="ios-mic"
+                        size={35}
+                        hitSlop={{ top: 20, bottom: 20, left: 50, right: 50 }}
+                        color={this.state.startAudio ? "red" : "black"}
+                        style={{
+                            bottom: 50,
+                            right: Dimensions.get("window").width / 2,
+                            position: "absolute",
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 0 },
+                            shadowOpacity: 0.5,
+                            zIndex: 2,
+                            backgroundColor: "transparent"
+                        }}
+                        onPress={this.handleAudio}
+                    />
+                );
+            }
+        }}
         />
       </View>
     );

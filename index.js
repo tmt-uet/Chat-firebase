@@ -16,6 +16,6 @@ import TestFireBase from './TestFireBase'
 import test_Image from './test_Image'
 
 AppRegistry.registerComponent(appName, () => RootNavigation);
-
+console.disableYellowBox = true;
 
 

@@ -104,27 +104,27 @@ export default class ListChat extends Component {
       backgroundColor: "#16a085",
       elevation: null
     },
-    headerRight: (
-      <Button
-        primary
-        title="Logout"
-        // onPress={() => {
-        //   firebase
-        //     .auth()
-        //     .signOut()
-        //     .then(
-        //       () => {
-        //         this.props.navigation.navigate("Login");
-        //       },
-        //       function(error) {
-        //         // An error happened.
-        //       }
-        //     );
-        // }}
-      >
-        Log out
-      </Button>
-    )
+    // headerRight: (
+    //   <Button
+    //     primary
+    //     title="Logout"
+    //     // onPress={() => {
+    //     //   firebase
+    //     //     .auth()
+    //     //     .signOut()
+    //     //     .then(
+    //     //       () => {
+    //     //         this.props.navigation.navigate("Login");
+    //     //       },
+    //     //       function(error) {
+    //     //         // An error happened.
+    //     //       }
+    //     //     );
+    //     // }}
+    //   >
+    //     Log out
+    //   </Button>
+    // )
   };
 
   renderRow = rowData => {
