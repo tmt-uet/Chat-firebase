@@ -75,6 +75,7 @@ export default class Chat extends React.Component {
     })
 
   }
+
   listenForItems(chatRef) {
     chatRef.on("value", snap => {
       // get children as an array
@@ -86,14 +87,13 @@ export default class Chat extends React.Component {
           createdAt: new Date(child.val().createdAt),
           user: {
             _id: child.val().uid,
-            avatar:this.userAvatar,
-            // avatar:child.val().avatar,
-            // name:'tung nayf'
+            avatar:child.val().avatar
           },
           image:child.val().image
         });
       });
-      // console.log("thu in ra avatarrrrrrrrrrrrrrrrr         "+)
+      console.log("--------------------------------------");
+      console.log(items);
 
       this.setState({
         loading: false,
@@ -139,14 +139,14 @@ export default class Chat extends React.Component {
         //   uid: this.user.uid,
         //   // avatar: this.user.avatar
         // },
+        avatar:"https://placeimg.com/640/480/nature",
         order: -1 * now,
         image:''
-
-        
       });
     });
-    console.log(this.state.messages)
+    // console.log(this.state.messages)
   }
+
   sendImageToFb(message){
     var now = new Date().getTime();
     this.chatRef.push({
@@ -158,10 +158,9 @@ export default class Chat extends React.Component {
       order: -1 * now,
       // messageType:message.messageType,
       image: message.image
-
-      
     });
   }
+
   pickImage(){
     ImagePicker.showImagePicker(options, (response) => {
       // console.log('Response = ', response);
@@ -234,11 +233,9 @@ export default class Chat extends React.Component {
           showAvatarForEveryMessage
           onSend={this.onSend.bind(this)}
           onPressAvatar={this.handleAvatarPress}
-          // onSend={messages => this.onSend(messages)}
           user={{
             _id: this.user.uid,
-            avatar:"https://placeimg.com/640/480/people",
-            name:this.user.name,
+            // avatar:"https://placeimg.com/640/480/nature"
           }}
         />
       </View>
