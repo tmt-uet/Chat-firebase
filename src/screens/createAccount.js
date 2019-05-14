@@ -69,6 +69,10 @@ export default class CreateAccount extends React.Component {
       console.log('create account failed. catch error:' + message);
     }
   };
+  onPressUploadAvatar=async()=>{
+    console.log('an dc nayyyyyyyyyyyyyyyyyyyyyyyy')
+    
+  }
 
   onChangeTextEmail = email => this.setState({ email });
   onChangeTextPassword = password => this.setState({ password });
@@ -119,6 +123,14 @@ export default class CreateAccount extends React.Component {
                   value={this.state.name}
                   ></TextInput>
               </View>  
+              <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={this.onPressUploadAvatar}
+              >
+                <Text style={styles.loginButtonTittle}>
+                Upload Avatar
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity 
               style={styles.loginButton}
               onPress={this.onPressCreate}

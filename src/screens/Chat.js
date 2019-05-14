@@ -8,7 +8,12 @@ import {
   Image,
   Button,
   TextInput,
-  Platform
+  Platform,
+  PermissionsAndroid,
+  Dimensions,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView
 } from "react-native";
 import { StackNavigator } from "react-navigation";
 import { GiftedChat } from "react-native-gifted-chat";
@@ -50,10 +55,7 @@ export default class Chat extends React.Component {
     console.log("email cua thang trong room chat day neeeeeeeeeeeeeeeee    "+ email);
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
-    this.onSend=this.onSend.bind(this)
-    this.getAvatar(res=>{this.userAvatar=res})          //lay ra avatar cua thang trong room chat
-    console.log("avatarrrrrrrrrrrrrr       "+this.userAvatar)
-    this.getAvatarSender(res=>{this.senderAvatar=res})
+    this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui
   
   }
   generateChatId(){
@@ -63,13 +65,13 @@ export default class Chat extends React.Component {
   getRef(){
     return FirebaseSvc.database().ref()
   }
-  getAvatarSender(callback){
+  getSender(callback){
     
     const userRef= this.getRef().child("users")
     userRef.on("value",snap=>{
       snap.forEach(child=>{
         if(child.val().email==this.user.email)
-          callback(child.val().avatar)
+          callback(child.val())
 
 
       })
@@ -77,19 +79,6 @@ export default class Chat extends React.Component {
 
   }
 
-  getAvatar(callback){
-    
-    const userRef= this.getRef().child("users")
-    userRef.on("value",snap=>{
-      snap.forEach(child=>{
-        if(child.val().email==email)
-          callback(child.val().avatar)
-
-
-      })
-    })
-
-  }
 
   listenForItems(chatRef) {
     chatRef.on("value", snap => {
@@ -155,7 +144,7 @@ export default class Chat extends React.Component {
         //   uid: this.user.uid,
         //   // avatar: this.user.avatar
         // },
-        avatar:this.senderAvatar,
+        avatar:this.sender.avatar,
         order: -1 * now,
         image:''
       });
@@ -202,7 +191,7 @@ export default class Chat extends React.Component {
         message.text=''
 
 
-        message.avatar=this.senderAvatar
+        message.avatar=this.sender.avatar
         message.order = -1*now
         message.image=source.uri
 
@@ -244,7 +233,7 @@ export default class Chat extends React.Component {
         message.text=''
 
 
-        message.avatar=this.senderAvatar
+        message.avatar=this.sender.avatar
         message.order = -1*now
         message.image=source.uri
 
