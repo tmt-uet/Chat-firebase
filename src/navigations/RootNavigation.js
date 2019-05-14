@@ -14,30 +14,31 @@ import createAccount from '../screens/createAccount'
 
 
 
-const pressAvatar= createStackNavigator(
-  {
+// const pressAvatar= createStackNavigator(
+//   {
     
-    Chat: Chat,
-    Personalize:Personalize
-  },
-  {
-    initialRouteName:'Chat'
-  }
-)
+//     Chat: Chat,
+//     Personalize:Personalize
+//   },
+//   {
+//     initialRouteName:'Chat'
+//   }
+// )
 
-const ListChatStack= createStackNavigator(
-  {
-    ListChat: ListChat,
-    Chat: pressAvatar
-  },
-  {
-    initialRouteName:'ListChat'
-  }
-)
+// const ListChatStack= createStackNavigator(
+//   {
+//     ListChat: ListChat,
+//     Chat: Chat,
+//     Personalize:Personalize
+//   },
+//   {
+//     initialRouteName:'ListChat'
+//   }
+// )
  const Home = createAppContainer(
   createBottomTabNavigator(
     {
-      ListChatStack: { screen: ListChatStack },
+      Home: { screen: ListChat },
       Settings: { screen: Personalize },
 
     },
@@ -60,6 +61,9 @@ const RootStack = createSwitchNavigator(
     Login: Login,
     createAccount: createAccount,
      Home : Home,
+     ListChat: ListChat,
+    Chat: Chat,
+    Personalize:Personalize
   },
   {
     initialRouteName: 'Login',  

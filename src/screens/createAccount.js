@@ -6,6 +6,7 @@ import {Platform,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  ImageBackground,
   Keyboard,
   ActivityIndicator,
   BackHandler} from 'react-native';
@@ -13,6 +14,8 @@ import firebaseSvc from '../FirebaseSvc';
 import {COLOR_PINK_LIGHT,COLOR_FACEBOOK} from './color.js'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FirebaseSvc from '../FirebaseSvc'
+import background from '../assets/background-image.jpg'
+import {Button} from 'native-base'
 export default class CreateAccount extends React.Component {
   static navigationOptions = {
     title: 'Creat account',
@@ -81,77 +84,68 @@ export default class CreateAccount extends React.Component {
 
   render() {
     return (
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <View style={styles.up}>
+      <ImageBackground source={background} style={{width: '100%', height: '100%',}}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.container}>
+            <View style={styles.up}>
               <Ionicons 
-              name="ios-finger-print"
-              size={100}
-              color={'white'}> </Ionicons>
-
-              
-
+                name="ios-contacts"
+                size={100}
+                color={'white'}> </Ionicons>
               <Text style={styles.title}>
-              Creat Account
+                TẠO TÀI KHOẢN
               </Text>
+            </View>
+            <View style ={styles.down}>
+                <View style ={styles.textInputContainer}>
+                    <TextInput style={styles.textInput}
+                    textContentType='emailAddress'
+                    keyboardType='email-address'  
+                    placeholder='Email'
+                    onChangeText={this.onChangeTextEmail}
+                    value={this.state.email}
+                    >
+                    </TextInput>
+                </View>
+
+                <View style ={styles.textInputContainer}>
+                    <TextInput style={styles.textInput}
+                    placeholder='Password' 
+                    secureTextEntry={true}
+                    onChangeText={this.onChangeTextPassword}
+                    value={this.state.password}
+                    ></TextInput>
+                </View>  
+                <View style ={styles.textInputContainer}>
+                    <TextInput style={styles.textInput}
+                    placeholder='Name' 
+                    
+                    onChangeText={this.onChangeTextName}
+                    value={this.state.name}
+                    ></TextInput>
+                </View>  
+                {/* <TouchableOpacity 
+                style={styles.loginButton}
+                onPress={this.onPressUploadAvatar}
+                >
+                  <Text style={styles.loginButtonTittle}>
+                  Upload Avatar
+                  </Text>
+                </TouchableOpacity> */}
+                <View style={{margin:10, width:280}}>
+                  <Button full info onPress={this.onPressCreate}>
+                    {/* <Icon name='signin' style = {{color:'white'}}></Icon> */}
+                    <Text style = {{color:'white'}}>ĐĂNG KÝ</Text>
+                  </Button>
+                </View>
+            </View>
           </View>
-          <View style ={styles.down}>
-              <View style ={styles.textInputContainer}>
-                  <TextInput style={styles.textInput}
-                  textContentType='emailAddress'
-                  keyboardType='email-address'  
-                  placeholder='Enter your email'
-                  onChangeText={this.onChangeTextEmail}
-                  value={this.state.email}
-                  >
-                  </TextInput>
-              </View>
-
-              <View style ={styles.textInputContainer}>
-                  <TextInput style={styles.textInput}
-                  placeholder='Enter your password' 
-                  secureTextEntry={true}
-                  onChangeText={this.onChangeTextPassword}
-                  value={this.state.password}
-                  ></TextInput>
-              </View>  
-              <View style ={styles.textInputContainer}>
-                  <TextInput style={styles.textInput}
-                  placeholder='Enter your name' 
-                  
-                  onChangeText={this.onChangeTextName}
-                  value={this.state.name}
-                  ></TextInput>
-              </View>  
-              <TouchableOpacity 
-              style={styles.loginButton}
-              onPress={this.onPressUploadAvatar}
-              >
-                <Text style={styles.loginButtonTittle}>
-                Upload Avatar
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-              style={styles.loginButton}
-              onPress={this.onPressCreate}
-              >
-                <Text style={styles.loginButtonTittle}>
-                Create
-                </Text>
-              </TouchableOpacity>  
-
-
-
- 
-
-
-          </View>
-
-        </View>
-   </TouchableWithoutFeedback>
-    );
+        </TouchableWithoutFeedback>
+        </ImageBackground>
+        
+      );
+    }
   }
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -159,14 +153,13 @@ const styles = StyleSheet.create({
       flexDirection : 'column',
       justifyContent: 'center',
       alignItems: 'stretch',
-      backgroundColor: COLOR_PINK_LIGHT,
   },
   up:{
       flex:3,
       flexDirection : 'column',
       justifyContent:'center',
       alignItems:'center',
-
+      marginTop:10
   },
   down:{
       flex:7,
@@ -176,7 +169,7 @@ const styles = StyleSheet.create({
       alignItems:'center'
   },
   title:{
-      color: 'firebrick',
+      color: 'white',
       textAlign : 'center',
       width: 400,
       fontSize:25,
@@ -187,10 +180,13 @@ const styles = StyleSheet.create({
       borderRadius:6,
       marginBottom:20, 
       backgroundColor:'rgba(255,255,255,0.2)',
+
   },
   textInput:{
-      width:280,
-      height : 45,
+    width:280,
+    height : 45,
+    borderBottomWidth:1,
+    borderColor:'#00cc99',
   },
   loginButton:{
       width:300,

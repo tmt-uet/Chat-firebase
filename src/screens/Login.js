@@ -15,13 +15,15 @@ import {Platform,
         TouchableOpacity,
         TouchableWithoutFeedback,
         Keyboard,
+        ImageBackground,
         ActivityIndicator} from 'react-native';
-import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
+// import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 // import firebase from 'firebase';
-
+import {Input, Icon, Button} from 'native-base'
 import {COLOR_PINK_LIGHT,COLOR_FACEBOOK} from './color.js'
+import background from '../assets/background-image.jpg'
 
 // const config = {
 //     apiKey: "AIzaSyAIP8Ug0OqI5Rxv29HK8hMYTWNrgG8Yvoc",
@@ -128,54 +130,51 @@ export default class Login extends Component{
         </View>
         }
     return (
+      <ImageBackground source={background} style={{width: '100%', height: '100%',}}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
               <View style={styles.up}>
                   <Ionicons 
-                  name="ios-finger-print"
+                  name="ios-contacts"
                   size={100}
                   color={'white'}> </Ionicons>
-
-                  
-
-                  <Text style={styles.title}>
-                  ChatApp for everyone
-                  </Text>
               </View>
               <View style ={styles.down}>
                   <View style ={styles.textInputContainer}>
                       <TextInput style={styles.textInput}
                       textContentType='emailAddress'
                       keyboardType='email-address'  
-                      placeholder='Enter your email'
+                      placeholder='Email'
                       onChangeText={this.onChangeTextEmail}
                       value={this.state.email}
                       >
+                        
                       </TextInput>
                   </View>
 
                   <View style ={styles.textInputContainer}>
                       <TextInput style={styles.textInput}
-                      placeholder='Enter your password' 
+                      placeholder='Password' 
                       secureTextEntry={true}
                       onChangeText={this.onChangeTextPassword}
                       value={this.state.password}
                       ></TextInput>
                   </View>  
-                  <TouchableOpacity 
-                  style={styles.loginButton}
-                  onPress={this.onPressLogin}
-                  >
-                    <Text style={styles.loginButtonTittle}>
-                    LOGIN
-                    </Text>
-                  </TouchableOpacity>  
 
+                  <View style={{ margin:10, width:280}}>
+                    <Button iconLeft bordered full success onPress={this.onPressLogin}>
+                      <Ionicons name='ios-log-in'></Ionicons>
+                      <Text> ĐĂNG NHẬP</Text>
+                    </Button>
+                </View>
 
-
-                  <Divider style={styles.divider}></Divider>
-
-                  <FontAwesome.Button 
+                <View style={{margin:10, width:280}}>
+                  <Button full info onPress={this.createAccount}>
+                    {/* <Icon name='signin' style = {{color:'white'}}></Icon> */}
+                    <Text style = {{color:'white'}}>ĐĂNG KÝ</Text>
+                  </Button>
+                </View>
+                  {/* <FontAwesome.Button 
 
                   style={styles.facebookButton}
                   name='facebook'
@@ -187,7 +186,7 @@ export default class Login extends Component{
 
                   </Text>
                 
-                  </FontAwesome.Button>   
+                  </FontAwesome.Button>    */}
                 <ActivityIndicator
                     //{console.log(this.state.logged)}
                     animating={this.state.animating}
@@ -200,7 +199,8 @@ export default class Login extends Component{
 
             </View>
       </TouchableWithoutFeedback>
-      )
+    </ImageBackground>
+  )
 
 }
 
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
         flexDirection : 'column',
         justifyContent: 'center',
         alignItems: 'stretch',
-        backgroundColor: COLOR_PINK_LIGHT,
+        // backgroundColor: COLOR_PINK_LIGHT,
     },
     up:{
         flex:3,
@@ -247,6 +247,8 @@ const styles = StyleSheet.create({
     textInput:{
         width:280,
         height : 45,
+        borderBottomWidth:1,
+        borderColor:'#00cc99',
     },
     loginButton:{
         width:300,
@@ -286,4 +288,3 @@ const styles = StyleSheet.create({
   }
 
 });
-

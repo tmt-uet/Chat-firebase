@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ListView,
   Image,
-  Button,
   TextInput,
   Platform,
   PermissionsAndroid,
@@ -19,7 +18,8 @@ import { StackNavigator } from "react-navigation";
 import { GiftedChat } from "react-native-gifted-chat";
 import ImagePicker from 'react-native-image-picker';
 import propTypes from "prop-types";
-
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import {Header, Left, Right, Body, Button} from 'native-base'
 import NavigationBar from "react-native-navbar";
 var options = {
   title: 'Select Avatar',
@@ -310,20 +310,27 @@ export default class Chat extends React.Component {
   // };
   render() {
     const rightButtonConfig = {
-      title: 'Take a photo',
+      title: <Ionicons name='ios-camera' size={28}></Ionicons>,
       handler: () => this.TakePhoto(),
   };
     const leftButtonConfig={
-      title:'Choose a Photo',
+      title:<Ionicons name='ios-image' size={28}></Ionicons>,
       handler: ()=>this.ChoosePhoto()
     }
     return (
       <View style={{ flex: 1 }}>
-        <NavigationBar
-            title={{ title: name }}
-            rightButton={rightButtonConfig}
-            leftButton={leftButtonConfig}
-        />
+        <Header style={{backgroundColor: '#4db8ff'}}>
+          <Left>
+            <Button transparent onPress={()=>this.props.navigation.navigate('Home')}>
+              <Ionicons name='md-arrow-back' size={28} ></Ionicons>
+            </Button>
+          </Left>
+          <Body>
+            <Text style={{fontWeight:'bold', fontSize:20}}>
+              {this.props.navigation.getParam('name')}
+            </Text>
+          </Body>
+        </Header>
         <GiftedChat
           messages={this.state.messages}
           showUserAvatar
@@ -357,6 +364,11 @@ export default class Chat extends React.Component {
                 );
             }
         }}
+        />
+        <NavigationBar
+            
+            rightButton={rightButtonConfig}
+            leftButton={leftButtonConfig}
         />
       </View>
     );

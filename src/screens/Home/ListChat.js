@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 import {
   View,
-  Text,
+
   StyleSheet,
   TouchableOpacity,
   ListView,
   Image,
   Button,
-  TextInput
+  TextInput,
+  ScrollView
 } from "react-native";
 
 import { StackNavigator } from "react-navigation";
@@ -15,43 +16,15 @@ import Spinner from "react-native-loading-spinner-overlay";
 
 import FirebaseSvc from '../../FirebaseSvc'
 // var name, uid, email;
-
+import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail, Text } from 'native-base';
 export default class ListChat extends Component {
   state = {
     name: "",
     uid: null,
-    email: ""
+    email: "",
+    avatar: "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png"
   };
-  // constructor(props) {
-  //   super(props);
-  //   this.state = {
-  //     dataSource: new ListView.DataSource({
-  //       rowHasChanged: (row1, row2) => row1 !== row2
-  //     }),
-  //     loading: true
-  //   };
-  //   this.items = [];
-  //   firebaseSvc.listenForItems(res => {
-  //     this.items = res
-  //     this.setState({
-  //       dataSource: this.state.dataSource.cloneWithRows(this.items),
-  //       loading: false
-  //     });
-  //   });
-
-  // }
-
-
-
-
-  // componentDidMount() {
-    
-  //   this.setState({
-  //     dataSource: this.state.dataSource.cloneWithRows(this.items),
-  //     loading: false
-  //   });
-  // }
-
+  
 
   constructor(props) {
     super(props);
@@ -79,7 +52,8 @@ export default class ListChat extends Component {
           items.push({
             name: child.val().name,
             uid: child.val().userId,
-            email: child.val().email
+            email: child.val().email,
+            avatar: child.val().avatar
           });
       });
 
@@ -95,65 +69,43 @@ export default class ListChat extends Component {
   }
 
 
-
-
-
-
   static navigationOptions = {
     headerStyle: {
       backgroundColor: "#16a085",
       elevation: null
     },
-    // headerRight: (
-    //   <Button
-    //     primary
-    //     title="Logout"
-    //     // onPress={() => {
-    //     //   firebase
-    //     //     .auth()
-    //     //     .signOut()
-    //     //     .then(
-    //     //       () => {
-    //     //         this.props.navigation.navigate("Login");
-    //     //       },
-    //     //       function(error) {
-    //     //         // An error happened.
-    //     //       }
-    //     //     );
-    //     // }}
-    //   >
-    //     Log out
-    //   </Button>
-    // )
   };
 
   renderRow = rowData => {
     return (
-      <TouchableOpacity
-        onPress={() => {
-          name = rowData.name;
-          email = rowData.email;
-          uid = rowData.uid;
-          // console.log("name nayyyyyyyyyyyyyy     "+name)
-          // console.log("email nayyyyyyyyyy      "+email)
-          // console.log("uid nayyyyyyyyyyyyyy      "+uid)
-          this.props.navigation.navigate("Chat", {
-            name: name,
-            email: email,
-            uid: uid
-          });
-        }}
-      >
-        <View style={styles.profileContainer}>
-          <Image
-            source={{
-              uri: "https://www.gravatar.com/avatar/"
-            }}
-            style={styles.profileImage}
-          />
-          <Text style={styles.profileName}>{rowData.name}</Text>
-        </View>
-      </TouchableOpacity>
+     
+       <Content >
+          <List >
+            <ListItem avatar onPress={() => {
+              name = rowData.name;
+              email = rowData.email;
+              uid = rowData.uid;
+              avatar = rowData.avatar;
+              this.props.navigation.navigate("Chat", {
+                name: name,
+                email: email,
+                uid: uid,
+                avatar:avatar
+              });
+            }}>
+              <Left>
+                <Thumbnail source={{ uri: rowData.avatar }} />
+              </Left>
+              <Body>
+                <Text>{ rowData.name }</Text>
+                <Text note>Tin nhắn mới nhất</Text>
+              </Body>
+              <Right>
+                <Text note>3:30 pm</Text>
+              </Right>
+            </ListItem>
+          </List>
+        </Content>
     );
   };
 
@@ -163,10 +115,12 @@ export default class ListChat extends Component {
         <View style={styles.topGroup}>
           <Text style={styles.myFriends}>My Friends</Text>
         </View>
-        <ListView
-          dataSource={this.state.dataSource}
-          renderRow={this.renderRow}
-        />
+        <ScrollView>
+          <ListView
+            dataSource={this.state.dataSource}
+            renderRow={this.renderRow}
+          />
+        </ScrollView>
         <Spinner visible={this.state.loading} />
       </View>
     );

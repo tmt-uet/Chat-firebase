@@ -13,9 +13,10 @@ export default class Splash extends Component{
 		return(
 			<View style={styles.container}>
 				<Ionicons 
-				name="ios-finger-print"
+				name="ios-contacts"
 				size={100}
 				color={'white'}> </Ionicons>
+				<Text style={{color:'white', fontSize:25,fontWeight: 'bold'}}>CHATAPP</Text>
 			</View>
 			)
 	}
@@ -27,6 +28,6 @@ const styles =StyleSheet.create({
 		flexDirection:'column',
         justifyContent:'center',
         alignItems:'center',
-        backgroundColor:COLOR_PINK_LIGHT
+        backgroundColor:'#4db8ff'
 	}
 })
