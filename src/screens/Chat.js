@@ -19,7 +19,7 @@ import { GiftedChat } from "react-native-gifted-chat";
 import ImagePicker from 'react-native-image-picker';
 import propTypes from "prop-types";
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import {Header, Left, Right, Body, Button} from 'native-base'
+import {Header, Left, Right, Body, Button,Icon, Fab, Footer, FooterTab} from 'native-base'
 import NavigationBar from "react-native-navbar";
 var options = {
   title: 'Select Avatar',
@@ -40,6 +40,7 @@ export default class Chat extends React.Component {
     super(props)
     state = {
       messages: [],
+      active: false
     }
     this.user=FirebaseSvc.auth().currentUser;
     console.log("User dang login nayyyyyyyy:   " + this.user.uid);
@@ -55,7 +56,7 @@ export default class Chat extends React.Component {
     console.log("email cua thang trong room chat day neeeeeeeeeeeeeeeee    "+ email);
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
-    this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui
+    this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui(dang dang nhap)
   
   }
   generateChatId(){
@@ -308,6 +309,7 @@ export default class Chat extends React.Component {
   //     </TouchableOpacity>
   //   )
   // };
+  
   render() {
     const rightButtonConfig = {
       title: <Ionicons name='ios-camera' size={28}></Ionicons>,
@@ -365,11 +367,16 @@ export default class Chat extends React.Component {
             }
         }}
         />
-        <NavigationBar
-            
-            rightButton={rightButtonConfig}
-            leftButton={leftButtonConfig}
-        />
+        <Footer style={{height:30}}>
+          <FooterTab style={{backgroundColor:'white'}}>
+            <Button>
+              <Icon name="camera" style={{color:"#3399ff"}} onPress={()=>this.TakePhoto()}/>
+            </Button>
+            <Button>
+              <Icon name="image" style={{color:'#3399ff'}} onPress={()=>this.ChoosePhoto()} />
+            </Button>
+          </FooterTab>
+        </Footer>
       </View>
     );
   }

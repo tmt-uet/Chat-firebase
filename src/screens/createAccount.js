@@ -25,7 +25,7 @@ export default class CreateAccount extends React.Component {
     name: 'Alex B',
     email: 'test3@gmail.com',
     password: 'test123',
-    avatar: '',
+    avatar: 'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
   };
 
   createAccount = async (user) => {
@@ -53,7 +53,10 @@ export default class CreateAccount extends React.Component {
       userId:User.uid,
       email:User.email,
       name: user.name,
-      avatar:user.avatar
+      avatar:this.state.avatar,
+      sex:'',
+      birthday:'',
+      national:'',
 
     });
   }
@@ -66,7 +69,9 @@ export default class CreateAccount extends React.Component {
         email: this.state.email,
         password: this.state.password,
         avatar: this.state.avatar,
+
       };
+
       await this.createAccount(user);
     } catch ({ message }) {
       console.log('create account failed. catch error:' + message);

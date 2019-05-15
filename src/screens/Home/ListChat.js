@@ -35,8 +35,15 @@ export default class ListChat extends Component {
       loading: true
     };
     this.friendsRef = this.getRef().child("users");
-  }
+    this.user=FirebaseSvc.auth().currentUser;
 
+    console.log('----------')
+    console.log("user",this.user.uid)
+  }
+  // generateChatId(){
+  //   if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
+  //   else return `${uid}-${this.user.uid}`;
+  // }
   getRef() {
     return FirebaseSvc.database().ref();
   }
