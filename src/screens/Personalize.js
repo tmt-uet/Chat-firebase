@@ -8,59 +8,117 @@ import {
   Container,
   Left,
   Right,
-  Badge, Thumbnail, H3
+  Badge, Thumbnail, H3,Button
 } from "native-base";
 //import {connect} from "react-redux";
 //import firebase from "react-native-firebase";
 import styles from "./style";
 import Icon from "react-native-vector-icons/FontAwesome5";
+import ImagePicker from 'react-native-image-picker';
 //import NavigationService from "./NavigationService";
 //import { loginSuccess, logoutSuccess, miniPlayerState, syncNavigationProps } from "../../redux/actions";
 const drawerCover = require("../assets/wallpaper.jpg");
-
-
-const datas = [
-  {
-    name: "Trang cá nhân",
-    route: "Anatomy",
-    icon: "user-circle",
-    bg: "#C5F442"
+import FirebaseSvc from '../FirebaseSvc'
+import Spinner from "react-native-loading-spinner-overlay";
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import { exportDefaultSpecifier } from "@babel/types";
+var options = {
+  title: 'Select Avatar',
+  customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
+  storageOptions: {
+    skipBackup: true,
+    path: 'images',
   },
-  {
-    name: "Cài đặt",
-    route: "Header",
-    icon: "dharmachakra",
-    bg: "#477EEA",
-    types: "11"
-  },
+};
 
-];
 
 class Personalize extends React.PureComponent {
   constructor(props) {
     super(props);
     this._isMounted = false;
+    this.state ={
+      loadAvatar : false,
+      isHost:this.props.navigation.getParam('isHost')
+    }
+    this.user=FirebaseSvc.auth().currentUser;
+    if(this.props.navigation.getParam('id') && this.props.navigation.getParam('id') == this.user.uid){
+      this.state={
+        uid : this.props.navigation.getParam('id'),
+        isHost: true
+      }
+    }
+    if(this.props.navigation.getParam('id') && this.props.navigation.getParam('id') != this.user.uid){
+      this.state={
+        uid : this.props.navigation.getParam('id'),
+        isHost: false
+      }
+    }
+    if(!this.props.navigation.getParam('id') ){
+      this.state={
+        uid:this.user.uid,
+        isHost:true
+      }
+    }
+    this.getSender(res=>{this.sender=res})
+    console.log('userprop', this.sender)
   }
+  async UploadAvatar(avatar){
+    await FirebaseSvc.database().ref('Users/').update({
+      avatar,
+    });
+    await this.setState({
+      loadAvatar:false
+    })
+  }
+  async UpdateAvatar(){
+    this.setState({
+      loadAvatar:true
+    })
+    await ImagePicker.launchImageLibrary(options, (response) => {
+      // console.log('Response = ', response);
+    
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = { uri: response.uri };
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
+        console.log("anh day nayyyyyyyyy     "+source.uri)
+        this.UploadAvatar(source.uri)
+    }})
+  
+  }
+  UpdateEmail(){
+    alert('')
+  }
+  getRef(){
+    return FirebaseSvc.database().ref()
+  }
+  getSender(callback){
+    
+    const userRef= this.getRef().child("users")
+    userRef.on("value",snap=>{
+      snap.forEach(child=>{
+        if(child.val().userId==this.state.uid)
+          callback(child.val())
+      })
+    })
+
+  }
   renderUserContainer = () => {
-    // if(this.props.auth.isAuthenticated) {
-    //   const user = this.props.auth.user._auth._user;
-    //   const email = user.email ? user.email : "Bạn chưa cập nhật địa chỉ email";
-    //   const username = user.displayName ? user.displayName : email;
-    //   const photoUrl = user.photoURL ? user.photoURL : "https://cdn3.iconfinder.com/data/icons/vector-icons-6/96/256-512.png";
-    //   return <View style={styles.drawerUserContainer}>
-    //     <Thumbnail source={{uri: photoUrl}} />
-    //     <H3 style={styles.username}>{username}</H3>
-    //     <Text style={styles.small}>{email}</Text>
-    //   </View>
-    // }
-    const username = "ThuongLe";
-    const email = "thuongle276@gmail.com";
-    const photoUrl = "https://cdn3.iconfinder.com/data/icons/vector-icons-6/96/256-512.png";
     return <View style ={styles.drawerUserContainer}>
-        <Thumbnail source={{uri: photoUrl}} />
-        <H3 style={styles.username}>{username}</H3>
-        <Text style={styles.small}>{email}</Text>
+      <Button transparent onPress={()=>this.UpdateAvatar()}>
+        <Thumbnail source={{uri: this.sender.avatar}} />
+        <Spinner visible={this.state.loading} />
+      </Button>
+        <H3 style={styles.username}>
+          {this.sender.name}
+        </H3>
+        <Text style = {styles.small}>{this.sender.email}</Text>
       </View>
    // return <View><Text>Empty</Text></View>
   };
@@ -84,21 +142,9 @@ class Personalize extends React.PureComponent {
     }
   };
 
-  // updateMiniPlayerState = (state) => {
-  //   this.props.dispatch(miniPlayerState(state));
-  // };
-  //
-  // componentWillReceiveProps(nextProps){
-  //   // this._isMounted && this.setState({drawerState: !nextProps.navigation.state.isDrawerOpen});
-  //   // this._isMounted && console.log(this.state.drawerState);
-  //   this._isMounted && this.updateMiniPlayerState(!nextProps.navigation.state.isDrawerOpen);
-  // }
-
 
   componentDidMount() {
     this._isMounted = true;
-    // this.updateMiniPlayerState(this.state.drawerState);
-    // this._isMounted && this.setState({drawerState: !this.props.navigation.state.isDrawerOpen});
   }
 
   componentWillUnmount(){
@@ -106,57 +152,55 @@ class Personalize extends React.PureComponent {
   }
 
   render() {
-    // this._isMounted && this.setState({drawerState: !this.props.navigation.state.isDrawerOpen});
-    // console.log(this.props.auth.user);
-    // this.updateMiniPlayerState();
-    const u = "https://cdn3.iconfinder.com/data/icons/vector-icons-6/96/256-512.png";
     return (
       <Container style={{ zIndex: 2 }}>
         <Content
           bounces={false}
           style={{ flex: 1, backgroundColor: "#fff", top: -1, zIndex: 3 }}
         >
-          {/*<Image source={drawerCover} style={styles.drawerCover} />*/}
-          {/*<Image square style={styles.drawerImage} source={drawerImage} />*/}
+        
           <ImageBackground source={drawerCover} style={styles.drawerCover}>
+            <Button transparent onPress={()=>this.props.navigation.navigate('Home')}>
+              <Ionicons name='md-arrow-back' size={28} style={{color:'white', marginLeft:10}}></Ionicons>
+            </Button>
             {this.renderUserContainer()}
           </ImageBackground>
-          <List
-            dataArray={datas}
-            renderRow={data =>
-              <ListItem
-                button
-                noBorder
-                onPress={() => NavigationService.navigate(data.route)}
-              >
-                <Left>
-                  <Icon
-                    active
-                    name={data.icon}
-                    style={{ color: "#777", fontSize: 26, width: 30 }}
-                  />
-                  <Text style={styles.text}>
-                    {data.name}
-                  </Text>
-                </Left>
-                {data.types &&
-                <Right style={{ flex: 1 }}>
-                  <Badge
-                    style={{
-                      borderRadius: 3,
-                      height: 25,
-                      width: 72,
-                      backgroundColor: data.bg
-                    }}
-                  >
-                    <Text
-                      style={styles.badgeText}
-                    >{`${data.types} Types`}</Text>
-                  </Badge>
-                </Right>}
-              </ListItem>}
-          />
+          <List>
+            <ListItem button noBorder>
+              <Left>
+                <Icon
+                  active
+                  name='envelope'
+                  style={{ color: "#777", fontSize: 26, width: 30 }}
+                />
+                <Text style={styles.text}>
+                  {this.sender.email}
+                </Text>
+              </Left>
+            </ListItem>
+          </List>
+          
           <List style={{borderTopWidth: 0.5, borderTopColor: "#777777c9", marginTop: 15}}>
+          {this.state.isHost ?
+            <ListItem
+              button
+              noBorder
+              onPress={()=>this.props.navigation.navigate('Edit', {user:this.sender})}
+            >
+              <Left>
+                <Icon
+                  active
+                  name="edit"
+                  style={{ color: "#777", fontSize: 26, width: 30 }}
+                />
+                <Text style={styles.text}>
+                  Chỉnh sửa
+                </Text>
+              </Left>
+            </ListItem>
+            :null
+          }
+          
             <ListItem
               button
               noBorder

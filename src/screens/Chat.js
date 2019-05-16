@@ -177,8 +177,8 @@ export default class Chat extends React.Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = { uri: response.uri };
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        // const source = { uri: response.uri };
+        const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
         console.log("anh day nayyyyyyyyy     "+source.uri)
 
@@ -219,8 +219,8 @@ export default class Chat extends React.Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = { uri: response.uri };
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        // const source = { uri: response.uri };
+        const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
         console.log("anh day nayyyyyyyyy     "+source.uri)
 
@@ -254,8 +254,8 @@ export default class Chat extends React.Component {
 
   handleAvatarPress=(temp_user)=>{
     console.log('------------------------')
-    console.log(temp_user)
-    this.props.navigation.navigate('Personalize')
+    console.log('id',temp_user._id)
+    this.props.navigation.navigate('Personalize', {id : temp_user._id})
   }
 
   renderAudio = props => {
@@ -297,38 +297,18 @@ export default class Chat extends React.Component {
   handleAudio(){
     console.log('an dc nheseeeeeeeeeeeee')
   }
-
-  // static navigationOptions = {
-  //   headerStyle: {
-  //     backgroundColor: "#16a085",
-  //     elevation: null
-  //   },
-  //   headerRight: (
-  //     <TouchableOpacity onPress={this.handleAudio}>
-  //       <Text>Add Photo</Text>
-  //     </TouchableOpacity>
-  //   )
-  // };
   
   render() {
-    const rightButtonConfig = {
-      title: <Ionicons name='ios-camera' size={28}></Ionicons>,
-      handler: () => this.TakePhoto(),
-  };
-    const leftButtonConfig={
-      title:<Ionicons name='ios-image' size={28}></Ionicons>,
-      handler: ()=>this.ChoosePhoto()
-    }
     return (
       <View style={{ flex: 1 }}>
         <Header style={{backgroundColor: '#4db8ff'}}>
           <Left>
             <Button transparent onPress={()=>this.props.navigation.navigate('Home')}>
-              <Ionicons name='md-arrow-back' size={28} ></Ionicons>
+              <Ionicons name='md-arrow-back' size={28} style={{color:'white'}}></Ionicons>
             </Button>
           </Left>
           <Body>
-            <Text style={{fontWeight:'bold', fontSize:20}}>
+            <Text style={{fontWeight:'bold', fontSize:20, color:'white'}}>
               {this.props.navigation.getParam('name')}
             </Text>
           </Body>

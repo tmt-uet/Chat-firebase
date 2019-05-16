@@ -19,104 +19,57 @@ import {Platform,
         ActivityIndicator} from 'react-native';
 // import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 // import firebase from 'firebase';
 import {Input, Icon, Button} from 'native-base'
 import {COLOR_PINK_LIGHT,COLOR_FACEBOOK} from './color.js'
 import background from '../assets/background-image.jpg'
-
-// const config = {
-//     apiKey: "AIzaSyAIP8Ug0OqI5Rxv29HK8hMYTWNrgG8Yvoc",
-//     authDomain: "chat-app-87fd5.firebaseapp.com",
-//     databaseURL: "https://chat-app-87fd5.firebaseio.com",
-//     projectId: "chat-app-87fd5",
-//     storageBucket: "chat-app-87fd5.appspot.com",
-//     messagingSenderId: "1096520825590"
-//   };
-// firebase.initializeApp(config);
-
-
-
-
 import FirebaseSvc from  '../FirebaseSvc'
 
-
-export default class Login extends Component{
-    state = {
-    logged: false,
-    animating: false,
-    name: 'Alex B',
-    email: 'test3@gmail.com',
-    password: 'test123',
-    avatar: '',
-    }
-
+export default class Edit extends Component{
+    
     constructor(props) {
       super(props);
+      this.user =this.props.navigation.getParam('user')
+      this.state = {
+        logged: false,
+        animating: false,
+        name: this.user.name,
+        email: this.user.email,
+        key:''
+        }
     }
-
-
-
-    
-  login = async (user,success_callback,failed_callback) =>{
-    console.log("logging in");
-    // User=FirebaseSvc.auth().currentUser.uid
-    // await AsyncStorage.setItem("email", User.email);
-    // await AsyncStorage.setItem("name", this.state.name);
-    // await AsyncStorage.setItem("uid", User.uid);
-    // await AsyncStorage.setItem("avatar", this.state.avatar);
-    const output = await FirebaseSvc.auth().signInWithEmailAndPassword(user.email, user.password)
-    .then(success_callback, failed_callback);
-    // console.log(FirebaseSvc.auth().currentUser.uid)
-  }   
-  onPressLogin = async () => {
-      console.log('pressing login... email:' + this.state.email);
-      const user = {
-        name: this.state.name,
-        email: this.state.email,
-        password: this.state.password,
-        avatar: this.state.avatar,
-      };
-      console.log(typeof user+ '      ahihishidhishdi') 
-      if(user== undefined){
-          console.log("DDMMMMMMMMMMMMMMMMMMM")
-      }
-      else{
-          console.log("UHMMMMMMMMMM")
-      }
-
-      const response = await this.login(
-        user,
-        this.loginSuccess,
-        this.loginFailed        
-        );
-      
-    };
-  
-    loginSuccess = () => {
-      console.log('login successful, navigate to chat.');
-
-
-      this.props.navigation.navigate('Home', {
-        name: this.state.name,
-        email: this.state.email,
-        avatar: this.state.avatar,
-      });
-    };
-    loginFailed = () => {
-      console.log('login failed ***');
-      alert('Login failure. Please tried again.');
-    };
-
+    async update(){
+        var updates={
+            name : this.state.name,
+            email: this.state.email
+        }
+        
+        this.friendsRef = this.getRef().child("users");
+        console.log('uid', this.friendsRef)
+        await this.friendsRef.on("value", snap => {
+          // get children as an array
+          snap.forEach(child => {
+            if (child.val().email == this.state.email)
+            console.log('key', child.key)
+            this.setState({
+              key:child.key
+            })
+          });
+          
+        }) 
+        await FirebaseSvc.database().ref('users/'+this.state.key +'/').update(updates)
+            .then(()=>{
+                alert('Chỉnh sửa thành công')
+                this.props.navigation.navigate('Personalize')
+            });
+    }
+    getRef() {
+        return FirebaseSvc.database().ref();
+    }
   onChangeTextEmail = email => this.setState({email})
-  onChangeTextPassword= password => this.setState({password})
-
-  createAccount=async()=>{
-      this.props.navigation.navigate('createAccount')
-  }
-
-  render(){
-
+//   onChangeTextPassword= password => this.setState({password})
+  onChangeTextName = name => this.setState({name})
+    render(){
     return (
       <ImageBackground source={background} style={{width: '100%', height: '100%',}}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -129,6 +82,16 @@ export default class Login extends Component{
               </View>
               <View style ={styles.down}>
                   <View style ={styles.textInputContainer}>
+                    <Text>Tên</Text>
+                    <TextInput style={styles.textInput}
+                    placeholder='Name' 
+                    
+                    onChangeText={this.onChangeTextName}
+                    value={this.state.name}
+                    ></TextInput>
+                  </View>
+                  <View style ={styles.textInputContainer}>
+                    <Text>Email</Text>
                       <TextInput style={styles.textInput}
                       textContentType='emailAddress'
                       keyboardType='email-address'  
@@ -139,28 +102,22 @@ export default class Login extends Component{
                         
                       </TextInput>
                   </View>
-
-                  <View style ={styles.textInputContainer}>
-                      <TextInput style={styles.textInput}
-                      placeholder='Password' 
-                      secureTextEntry={true}
-                      onChangeText={this.onChangeTextPassword}
-                      value={this.state.password}
-                      ></TextInput>
-                  </View>  
+                  {/* <View style ={styles.textInputContainer}>
+                    <Text>Mật khẩu</Text>
+                    <TextInput style={styles.textInput}
+                    placeholder='Password' 
+                    secureTextEntry={true}
+                    onChangeText={this.onChangeTextPassword}
+                    value={this.state.password}
+                    ></TextInput>
+                        
+                  </View> */}
 
                   <View style={{ margin:10, width:280}}>
-                    <Button iconLeft bordered full success onPress={this.onPressLogin}>
-                      <Ionicons name='ios-log-in' size={20}></Ionicons>
-                      <Text> ĐĂNG NHẬP</Text>
+                    <Button iconLeft bordered full success  onPress={()=>this.update()}>
+                      <Icon name='save' size={20}></Icon>
+                      <Text> LƯU</Text>
                     </Button>
-                </View>
-
-                <View style={{margin:10, width:280}}>
-                  <Button full info onPress={this.createAccount}>
-                    {/* <Icon name='signin' style = {{color:'white'}}></Icon> */}
-                    <Text style = {{color:'white'}}>ĐĂNG KÝ</Text>
-                  </Button>
                 </View>
                 <ActivityIndicator
                     //{console.log(this.state.logged)}

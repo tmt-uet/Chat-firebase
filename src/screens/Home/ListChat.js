@@ -37,8 +37,7 @@ export default class ListChat extends Component {
     this.friendsRef = this.getRef().child("users");
     this.user=FirebaseSvc.auth().currentUser;
 
-    console.log('----------')
-    console.log("user",this.user.uid)
+
   }
   // generateChatId(){
   //   if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
@@ -50,7 +49,8 @@ export default class ListChat extends Component {
 
   listenForItems(friendsRef) {
     var user = FirebaseSvc.auth().currentUser;
-    
+    console.log('----------')
+    console.log("user",user.uid)
     friendsRef.on("value", snap => {
       // get children as an array
       var items = [];

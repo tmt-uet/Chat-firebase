@@ -11,7 +11,7 @@ import getTabBarIcon from '../screens/Home/Icon'
 // import Home from '../screens/Home/Home'
 import Personalize from '../screens/Personalize'
 import createAccount from '../screens/createAccount'
-
+import Edit from '../screens/Edit'
 
 
 // const pressAvatar= createStackNavigator(
@@ -63,7 +63,8 @@ const RootStack = createSwitchNavigator(
      Home : Home,
      ListChat: ListChat,
     Chat: Chat,
-    Personalize:Personalize
+    Personalize:Personalize,
+    Edit:Edit
   },
   {
     initialRouteName: 'Login',  
