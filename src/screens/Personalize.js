@@ -38,7 +38,8 @@ class Personalize extends React.PureComponent {
     this._isMounted = false;
     this.state ={
       loadAvatar : false,
-      isHost:this.props.navigation.getParam('isHost')
+      isHost:this.props.navigation.getParam('isHost'),
+      key:''
     }
     this.user=FirebaseSvc.auth().currentUser;
     if(this.props.navigation.getParam('id') && this.props.navigation.getParam('id') == this.user.uid){
@@ -61,14 +62,29 @@ class Personalize extends React.PureComponent {
     }
     this.getSender(res=>{this.sender=res})
     console.log('userprop', this.sender)
+    
   }
   async UploadAvatar(avatar){
-    await FirebaseSvc.database().ref('Users/').update({
-      avatar,
-    });
-    await this.setState({
-      loadAvatar:false
-    })
+    this.friendsRef = this.getRef().child("users");
+    console.log('uid', this.friendsRef)
+    await this.friendsRef.on("value", snap => {
+      // get children as an array
+      snap.forEach(child => {
+        if (child.val().email == this.user.email)
+        console.log('key', child.key)
+        this.setState({
+          key:child.key
+        })
+      });
+      
+    }) 
+    var updates={avatar : avatar}
+    await FirebaseSvc.database().ref('users/'+this.state.key +'/').update(updates)
+      .then(()=>{
+        this.setState({
+          loadAvatar:false
+        })
+      });
   }
   async UpdateAvatar(){
     this.setState({
@@ -84,8 +100,8 @@ class Personalize extends React.PureComponent {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = { uri: response.uri };
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        // const source = { uri: response.uri };
+        const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
         console.log("anh day nayyyyyyyyy     "+source.uri)
         this.UploadAvatar(source.uri)
@@ -113,7 +129,7 @@ class Personalize extends React.PureComponent {
     return <View style ={styles.drawerUserContainer}>
       <Button transparent onPress={()=>this.UpdateAvatar()}>
         <Thumbnail source={{uri: this.sender.avatar}} />
-        <Spinner visible={this.state.loading} />
+        <Spinner visible={this.state.loadAvatar} />
       </Button>
         <H3 style={styles.username}>
           {this.sender.name}
