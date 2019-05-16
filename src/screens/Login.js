@@ -114,7 +114,43 @@ export default class Login extends Component{
   createAccount=async()=>{
       this.props.navigation.navigate('createAccount')
   }
+  getRef(){
+    return FirebaseSvc.database().ref()
+  }
+  getSender(callback){
+    
+    const userRef= this.getRef().child("users")
+    userRef.on("value",snap=>{
+      snap.forEach(child=>{
+        if(child.val().email==this.user.email)
+          callback(child.val())
 
+
+      })
+    })
+
+  }
+   componentDidMount(){
+    
+      FirebaseSvc.auth().onAuthStateChanged(async function(user) {
+        console.log('users--------------------------')
+        console.log(user)
+        this.user=user;
+       await this.getSender(res=>{this.sender=res})
+       console.log('usrs--------------------------')
+       console.log(this.sender)
+
+      if (user) {
+        this.props.navigation.navigate('Home',{
+          name: this.sender.name,
+          email: this.sender.email,
+          avatar: this.sender.avatar,
+        })
+      } else {
+        // No user is signed in.
+      }
+    });
+  }
   render(){
 
     return (

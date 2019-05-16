@@ -24,7 +24,8 @@ import {Input, Icon, Button} from 'native-base'
 import {COLOR_PINK_LIGHT,COLOR_FACEBOOK} from './color.js'
 import background from '../assets/background-image.jpg'
 import FirebaseSvc from  '../FirebaseSvc'
-
+import FlashMessage from "react-native-flash-message";
+import { showMessage, hideMessage } from "react-native-flash-message";
 export default class Edit extends Component{
     
     constructor(props) {
@@ -59,7 +60,7 @@ export default class Edit extends Component{
         }) 
         await FirebaseSvc.database().ref('users/'+this.state.key +'/').update(updates)
             .then(()=>{
-                alert('Chỉnh sửa thành công')
+                alert('Lưu thay đổi')
                 this.props.navigation.navigate('Personalize')
             });
     }
@@ -116,9 +117,20 @@ export default class Edit extends Component{
                   <View style={{ margin:10, width:280}}>
                     <Button iconLeft bordered full success  onPress={()=>this.update()}>
                       <Icon name='save' size={20}></Icon>
-                      <Text> LƯU</Text>
+                      <Text> LƯU Thay ĐỔI</Text>
                     </Button>
                 </View>
+                <Button
+          onPress={() => {
+            /* HERE WE GONE SHOW OUR FIRST MESSAGE */
+            showMessage({
+              message: "Simple message",
+              type: "info",
+            });
+          }}
+          title="Request Details"
+          color="#841584"
+        />
                 <ActivityIndicator
                     //{console.log(this.state.logged)}
                     animating={this.state.animating}
