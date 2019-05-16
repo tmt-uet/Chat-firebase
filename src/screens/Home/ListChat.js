@@ -85,7 +85,6 @@ export default class ListChat extends Component {
 
   renderRow = rowData => {
     return (
-     
        <Content >
           <List >
             <ListItem avatar onPress={() => {
@@ -118,10 +117,14 @@ export default class ListChat extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
-        <View style={styles.topGroup}>
-          <Text style={styles.myFriends}>My Friends</Text>
-        </View>
+      <View >
+        <Header style={{backgroundColor: '#4db8ff', width :'100%'}}>
+          <Left>
+          <Text style={{fontWeight:'bold', fontSize:20, color:'white'}}>
+              Tin nhắn
+            </Text>
+          </Left>
+        </Header>
         <ScrollView>
           <ListView
             dataSource={this.state.dataSource}

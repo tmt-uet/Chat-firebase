@@ -12,7 +12,7 @@ import getTabBarIcon from '../screens/Home/Icon'
 import Personalize from '../screens/Personalize'
 import createAccount from '../screens/createAccount'
 import Edit from '../screens/Edit'
-
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 // const pressAvatar= createStackNavigator(
 //   {
@@ -42,16 +42,7 @@ import Edit from '../screens/Edit'
       Settings: { screen: Personalize },
 
     },
-    // {
-    //   defaultNavigationOptions: ({ navigation }) => ({
-    //     tabBarIcon: ({ focused, tintColor }) =>
-    //       getTabBarIcon(navigation, focused, tintColor),
-    //   }),
-    //   tabBarOptions: {
-    //     activeTintColor: 'tomato',
-    //     inactiveTintColor: 'gray',
-    //   },
-    // }
+    
   )
 );
 
