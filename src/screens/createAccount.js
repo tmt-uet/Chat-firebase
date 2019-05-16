@@ -42,7 +42,7 @@ export default class CreateAccount extends React.Component {
           console.warn("Error update displayName.");
         });
       }, function(error) {
-        console.error("got error:" + typeof(error) + " string:" + error.message);
+        // console.error("got error:" + typeof(error) + " string:" + error.message);
         alert("Create account failed. Error: "+error.message);
       });
     console.log("write firebaseeeeeeeeeeeeeeee")
