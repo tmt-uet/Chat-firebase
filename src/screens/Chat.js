@@ -166,6 +166,17 @@ export default class Chat extends React.Component {
         order: -1 * now,
         image:''
       });
+      FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
+        _id: now,
+        text: message.text,
+        createdAt: now,
+        uid: this.user.uid,
+        order: -1 * now,
+        friend: uid,
+        name: name, 
+        avatar: avatar,
+        emailFr : email
+      });
     });
     // console.log(this.state.messages)
   }
@@ -180,6 +191,17 @@ export default class Chat extends React.Component {
       order: -1 * now,
       avatar:message.avatar,
       image: message.image
+    });
+    FirebaseSvc.database().ref('newChat/' + this.generateChatId +'/').update({
+      _id: now,
+      name:name,
+      text: 'Gửi hình ảnh',
+      createdAt: now,
+      uid: this.user.uid,
+      order: -1 * now,
+      friend:uid,
+      avatar:avatar, 
+      emailFr: email
     });
   }
 

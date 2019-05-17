@@ -38,8 +38,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
  const Home = createAppContainer(
   createBottomTabNavigator(
     {
-      Home: { screen: ListChat },
-      Settings: { screen: Personalize },
+      "Trang chủ": { screen: ListChat },
+      "Bạn bè" : 
+      "Cài đặt": { screen: Personalize },
 
     },
     // {

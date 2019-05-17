@@ -35,9 +35,9 @@ export default class ListChat extends Component {
       loading: true,
        data:[]
     };
-    this.friendsRef = this.getRef().child("users");
+    this.friendsRef = this.getRef().child("newChat");
     this.user=FirebaseSvc.auth().currentUser;
-
+    
 
   }
   // generateChatId(){
@@ -51,22 +51,27 @@ export default class ListChat extends Component {
     return FirebaseSvc.database().ref();
   }
 
-  listenForItems(friendsRef) {
+  async listenForItems(friendsRef) {
     var user = FirebaseSvc.auth().currentUser;
     console.log('----------')
     console.log("user",user.uid)
-    friendsRef.on("value", snap => {
+    await friendsRef.on("value", async snap => {
       // get children as an array
       var items = [];
-      snap.forEach(child => {
-        if (child.val().email != user.email)
+      await snap.forEach(child => {
+        if (child.val().uid != user.uid)
+          console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+          console.log(child.val())
           items.push({
             name: child.val().name,
-            uid: child.val().userId,
-            email: child.val().email,
-            avatar: child.val().avatar
+            uid: child.val().friend,
+            email: child.val().emailFr,
+            avatar: child.val().avatar,
+            text: child.val().text,
+            createdAt: child.val().createdAt,
           });
       });
+      
       var a = JSON.stringify(items)
       this.setState({
        
@@ -87,14 +92,20 @@ export default class ListChat extends Component {
       elevation: null
     },
   };
-
+  getTime(time){
+    var t = new Date(time)
+    var hours = t.getHours()
+    var minutes = t.getMinutes()
+    return hours + ':'+ minutes
+  }
   renderRow = rowData => {
+    console.log()
     return (
        <Content >
           <List >
             <ListItem avatar onPress={() => {
               name = rowData.item.name;
-              email = rowData.item.email;
+              email = rowData.item.emailFr;
               uid = rowData.item.uid;
               avatar = rowData.item.avatar;
               this.props.navigation.navigate("Chat", {
@@ -109,10 +120,10 @@ export default class ListChat extends Component {
               </Left>
               <Body>
                 <Text>{ rowData.item.name }</Text>
-                <Text note>Tin nhắn mới nhất</Text>
+                <Text note>{rowData.item.text}</Text>
               </Body>
               <Right>
-                <Text note>3:30 pm</Text>
+                <Text note>{this.getTime(rowData.item.createdAt)}</Text>
               </Right>
             </ListItem>
           </List>
