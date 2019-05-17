@@ -29,7 +29,7 @@ var options = {
     path: 'images',
   },
 };
-var name, uid, email;         //luu thong tin cuar thang trong room chat
+var name, uid, email, avatar;         //luu thong tin cuar thang trong room chat
 import FirebaseSvc from '../FirebaseSvc'
 
 export default class Chat extends React.Component {
@@ -50,6 +50,7 @@ export default class Chat extends React.Component {
     uid = params.uid;
     name = params.name;
     email = params.email;
+    avatar = params.avatar
     
     console.log("User dang login nayyyyyyyy:   " + uid);
 
@@ -57,7 +58,7 @@ export default class Chat extends React.Component {
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
     this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui(dang dang nhap)
-  
+    // this.user=FirebaseSvc.auth().currentUser;
   }
   generateChatId(){
     if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
@@ -85,18 +86,34 @@ export default class Chat extends React.Component {
     chatRef.on("value", snap => {
       // get children as an array
       var items = [];
+      // console.log(this.user,userId)
       snap.forEach(child => {
-        items.push({
-          _id: child.val().createdAt,
-          text: child.val().text,
-          createdAt: new Date(child.val().createdAt),
-          user: {
-            _id: child.val().uid,
-            avatar:child.val().avatar,
-            name:child.val().name
-          },
-          image:child.val().image
-        });
+        if(child.val().uid == this.user.uid){
+          items.push({
+            _id: child.val().createdAt,
+            text: child.val().text,
+            createdAt: new Date(child.val().createdAt),
+            user: {
+              _id: child.val().uid,
+              avatar: this.sender.avatar,
+              name:child.val().name
+            },
+            image:child.val().image
+          });
+        }else{
+          items.push({
+            _id: child.val().createdAt,
+            text: child.val().text,
+            createdAt: new Date(child.val().createdAt),
+            user: {
+              _id: child.val().uid,
+              avatar:avatar,
+              name:child.val().name
+            },
+            image:child.val().image
+          });
+        }
+        
       });
       console.log("--------------------------------------");
       console.log(items);
@@ -118,12 +135,12 @@ export default class Chat extends React.Component {
       messages: [
         {
           _id: 1,
-          text: 'Hello developer',
+          text: 'Welcome to chat',
           createdAt: new Date(),
           user: {
             _id: 2,
             name: 'React Native',
-            avatar: 'https://placeimg.com/140/140/any',
+            avatar: this.props.navigation.getParam('avatar'),
           },
         },
       ],

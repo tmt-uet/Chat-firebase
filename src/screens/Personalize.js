@@ -71,10 +71,12 @@ class Personalize extends React.PureComponent {
       // get children as an array
       snap.forEach(child => {
         if (child.val().email == this.user.email)
-        console.log('key', child.key)
+        {
+          console.log('key', child.key)
         this.setState({
           key:child.key
         })
+      }
       });
       
     }) 
@@ -140,9 +142,7 @@ class Personalize extends React.PureComponent {
   };
 
   onSignout = () => {
-    if(this.props.auth.isAuthenticated) {
-      firebase.auth().signOut().then((res) => {
-        //this.props.dispatch(logoutSuccess());
+      FirebaseSvc.auth().signOut().then((res) => {
         this.props.navigation.navigate("Login");
       }).catch(function(error) {
         // An error happened.
@@ -155,7 +155,7 @@ class Personalize extends React.PureComponent {
           { cancelable: true }
         );
       });
-    }
+    // }
   };
 
 
@@ -191,6 +191,42 @@ class Personalize extends React.PureComponent {
                 />
                 <Text style={styles.text}>
                   {this.sender.email}
+                </Text>
+              </Left>
+            </ListItem>
+            <ListItem button noBorder>
+              <Left>
+                <Icon
+                  active
+                  name='crown'
+                  style={{ color: "#777", fontSize: 26, width: 30 }}
+                />
+                <Text style={styles.text}>
+                  {this.sender.sex}
+                </Text>
+              </Left>
+            </ListItem>
+            <ListItem button noBorder>
+              <Left>
+                <Icon
+                  active
+                  name='child'
+                  style={{ color: "#777", fontSize: 26, width: 30 }}
+                />
+                <Text style={styles.text}>
+                  {this.sender.age}
+                </Text>
+              </Left>
+            </ListItem>
+            <ListItem button noBorder>
+              <Left>
+                <Icon
+                  active
+                  name='globe-americas'
+                  style={{ color: "#777", fontSize: 26, width: 30 }}
+                />
+                <Text style={styles.text}>
+                  {this.sender.national}
                 </Text>
               </Left>
             </ListItem>

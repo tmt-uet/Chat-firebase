@@ -36,13 +36,17 @@ export default class Edit extends Component{
         animating: false,
         name: this.user.name,
         email: this.user.email,
+        national: this.user.national,
+        age: this.user.age,
         key:''
         }
     }
     async update(){
         var updates={
             name : this.state.name,
-            email: this.state.email
+            email: this.state.email,
+            national: this.state.national,
+            age: this.state.age
         }
         
         this.friendsRef = this.getRef().child("users");
@@ -50,11 +54,13 @@ export default class Edit extends Component{
         await this.friendsRef.on("value", snap => {
           // get children as an array
           snap.forEach(child => {
-            if (child.val().email == this.state.email)
-            console.log('key', child.key)
-            this.setState({
-              key:child.key
-            })
+            if (child.val().email == this.state.email){
+              console.log('key', child.key)
+              this.setState({
+                key:child.key
+              })
+            }
+            
           });
           
         }) 
@@ -70,6 +76,8 @@ export default class Edit extends Component{
   onChangeTextEmail = email => this.setState({email})
 //   onChangeTextPassword= password => this.setState({password})
   onChangeTextName = name => this.setState({name})
+  onChangeTextNational = national => this.setState({ national });
+  onChangeTextAge = age => this.setState({ age });
     render(){
     return (
       <ImageBackground source={background} style={{width: '100%', height: '100%',}}>
@@ -85,7 +93,7 @@ export default class Edit extends Component{
                   <View style ={styles.textInputContainer}>
                     <Text>Tên</Text>
                     <TextInput style={styles.textInput}
-                    placeholder='Name' 
+                    placeholder='Tên' 
                     
                     onChangeText={this.onChangeTextName}
                     value={this.state.name}
@@ -103,16 +111,23 @@ export default class Edit extends Component{
                         
                       </TextInput>
                   </View>
-                  {/* <View style ={styles.textInputContainer}>
-                    <Text>Mật khẩu</Text>
+                   
+                <View style ={styles.textInputContainer}>
                     <TextInput style={styles.textInput}
-                    placeholder='Password' 
-                    secureTextEntry={true}
-                    onChangeText={this.onChangeTextPassword}
-                    value={this.state.password}
+                    placeholder='Tuổi' 
+                    
+                    onChangeText={this.onChangeTextAge}
+                    value={this.state.age}
                     ></TextInput>
-                        
-                  </View> */}
+                </View>  
+                <View style ={styles.textInputContainer}>
+                    <TextInput style={styles.textInput}
+                    placeholder='Quốc tịch' 
+                    
+                    onChangeText={this.onChangeTextNational}
+                    value={this.state.national}
+                    ></TextInput>
+                </View>  
 
                   <View style={{ margin:10, width:280}}>
                     <Button iconLeft bordered full success  onPress={()=>this.update()}>

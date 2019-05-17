@@ -23,6 +23,7 @@
     "react-native-image-resizer": "^1.0.1",
     "react-native-loading-spinner-overlay": "^1.0.1",
     "react-native-navbar": "^2.1.0",
+    "react-native-paper": "^2.15.2",
     "react-native-prompt": "^1.0.0",
     "react-native-search-filter": "^0.1.4",
     "react-native-sound": "^0.10.12",

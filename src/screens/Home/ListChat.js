@@ -8,15 +8,17 @@ import {
   Image,
   Button,
   TextInput,
-  ScrollView
+  ScrollView,
+  FlatList
 } from "react-native";
 
 import { StackNavigator } from "react-navigation";
 import Spinner from "react-native-loading-spinner-overlay";
-
+import SearchInput, { createFilter } from 'react-native-search-filter';
 import FirebaseSvc from '../../FirebaseSvc'
 // var name, uid, email;
 import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail, Text } from 'native-base';
+const KEYS_TO_FILTERS = ['name', 'email'];
 export default class ListChat extends Component {
   state = {
     name: "",
@@ -29,10 +31,9 @@ export default class ListChat extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      dataSource: new ListView.DataSource({
-        rowHasChanged: (row1, row2) => row1 !== row2
-      }),
-      loading: true
+      searchTerm: '',
+      loading: true,
+       data:[]
     };
     this.friendsRef = this.getRef().child("users");
     this.user=FirebaseSvc.auth().currentUser;
@@ -43,6 +44,9 @@ export default class ListChat extends Component {
   //   if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
   //   else return `${uid}-${this.user.uid}`;
   // }
+  searchUpdated(term) {
+    this.setState({ searchTerm: term })
+  }
   getRef() {
     return FirebaseSvc.database().ref();
   }
@@ -63,10 +67,11 @@ export default class ListChat extends Component {
             avatar: child.val().avatar
           });
       });
-
+      var a = JSON.stringify(items)
       this.setState({
-        dataSource: this.state.dataSource.cloneWithRows(items),
-        loading: false
+       
+        loading: false,
+        data :JSON.parse(a)
       });
     });
   }
@@ -88,10 +93,10 @@ export default class ListChat extends Component {
        <Content >
           <List >
             <ListItem avatar onPress={() => {
-              name = rowData.name;
-              email = rowData.email;
-              uid = rowData.uid;
-              avatar = rowData.avatar;
+              name = rowData.item.name;
+              email = rowData.item.email;
+              uid = rowData.item.uid;
+              avatar = rowData.item.avatar;
               this.props.navigation.navigate("Chat", {
                 name: name,
                 email: email,
@@ -100,10 +105,10 @@ export default class ListChat extends Component {
               });
             }}>
               <Left>
-                <Thumbnail source={{ uri: rowData.avatar }} />
+                <Thumbnail source={{ uri: rowData.item.avatar }} />
               </Left>
               <Body>
-                <Text>{ rowData.name }</Text>
+                <Text>{ rowData.item.name }</Text>
                 <Text note>Tin nhắn mới nhất</Text>
               </Body>
               <Right>
@@ -116,19 +121,22 @@ export default class ListChat extends Component {
   };
 
   render() {
+    const {data} = this.state
+     const filteredName = data.filter(createFilter(this.state.searchTerm, KEYS_TO_FILTERS))
     return (
       <View >
         <Header style={{backgroundColor: '#4db8ff', width :'100%'}}>
-          <Left>
-          <Text style={{fontWeight:'bold', fontSize:20, color:'white'}}>
-              Tin nhắn
-            </Text>
-          </Left>
+          <SearchInput 
+            onChangeText={(term) => { this.searchUpdated(term) }} 
+            style={styles.searchInput}
+            placeholder="Tìm bạn bè ..."
+            />
         </Header>
         <ScrollView>
-          <ListView
-            dataSource={this.state.dataSource}
-            renderRow={this.renderRow}
+          <FlatList
+            data={filteredName}
+            renderItem={this.renderRow}
+            style={{marginBottom:70}}
           />
         </ScrollView>
         <Spinner visible={this.state.loading} />
@@ -178,5 +186,11 @@ const styles = StyleSheet.create({
   profileName: {
     marginLeft: 6,
     fontSize: 16
+  },
+  searchInput:{
+    width:'100%',
+    borderColor: '#4db8ff',
+    borderWidth: 1,
+    borderRadius: 40,
   }
 });

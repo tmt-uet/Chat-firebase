@@ -40,7 +40,7 @@ import background from '../assets/background-image.jpg'
 
 import FirebaseSvc from  '../FirebaseSvc'
 
-
+var temp,sender
 export default class Login extends Component{
     state = {
     logged: false,
@@ -53,6 +53,7 @@ export default class Login extends Component{
 
     constructor(props) {
       super(props);
+      
     }
 
 
@@ -114,7 +115,7 @@ export default class Login extends Component{
   createAccount=async()=>{
       this.props.navigation.navigate('createAccount')
   }
-  getRef(){
+  getRef=()=>{
     return FirebaseSvc.database().ref()
   }
   getSender(callback){
@@ -122,7 +123,7 @@ export default class Login extends Component{
     const userRef= this.getRef().child("users")
     userRef.on("value",snap=>{
       snap.forEach(child=>{
-        if(child.val().email==this.user.email)
+        if(child.val().email=='tungmin2410@gmail.com')
           callback(child.val())
 
 
@@ -131,25 +132,36 @@ export default class Login extends Component{
 
   }
    componentDidMount(){
-    
-      FirebaseSvc.auth().onAuthStateChanged(async function(user) {
-        console.log('users--------------------------')
-        console.log(user)
-        this.user=user;
-       await this.getSender(res=>{this.sender=res})
-       console.log('usrs--------------------------')
-       console.log(this.sender)
+    user=FirebaseSvc.auth().currentUser
 
-      if (user) {
-        this.props.navigation.navigate('Home',{
-          name: this.sender.name,
-          email: this.sender.email,
-          avatar: this.sender.avatar,
-        })
-      } else {
-        // No user is signed in.
-      }
-    });
+    console.log('----------------------------------')
+    // console.log(user.email)
+    if(user){
+      this.props.navigation.navigate('Home')
+    }
+ 
+    //   FirebaseSvc.auth().onAuthStateChanged (function(user) {
+    //     console.log('users--------------------------')
+    //     console.log(user.email)
+    //     console.log('temp--------------------------')
+    //     temp=user;
+    //     console.log(temp.email)
+ 
+    //     // console.log(this.sender.email)
+
+
+    //   if (user) {
+    //     this.props.navigation.navigate('Home'
+    //     // ,{
+    //     //   name: this.sender.name,
+    //     //   email: this.sender.email,
+    //     //   avatar: this.sender.avatar,
+    //     // }
+    //     )
+    //   } else {
+    //     // No user is signed in.
+    //   }
+    // });
   }
   render(){
 
