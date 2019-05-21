@@ -26,7 +26,8 @@ export default {
     top: Platform.OS === "android" ? deviceHeight / 13 : deviceHeight / 12,
     width: 210,
     height: 75,
-    resizeMode: "cover"
+    resizeMode: "cover",
+    marginTop:30
   },
   username: {
     color:"#fff",
@@ -35,7 +36,7 @@ export default {
   small: {
     fontSize: 14,
     color: "#fff",
-    marginTop: 5
+    // marginTop: 5
   },
   text: {
     fontWeight: Platform.OS === "ios" ? "500" : "400",

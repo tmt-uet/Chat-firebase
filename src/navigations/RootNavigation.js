@@ -11,8 +11,8 @@ import getTabBarIcon from '../screens/Home/Icon'
 // import Home from '../screens/Home/Home'
 import Personalize from '../screens/Personalize'
 import createAccount from '../screens/createAccount'
-
-
+import Edit from '../screens/Edit'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 // const pressAvatar= createStackNavigator(
 //   {
@@ -38,14 +38,29 @@ import createAccount from '../screens/createAccount'
  const Home = createAppContainer(
   createBottomTabNavigator(
     {
-      Home: { screen: ListChat },
-      Settings: { screen: Personalize },
+      "Home": { screen: ListChat },
+      // "Bạn bè" : 
+      "Setting": { screen: Personalize }
 
     },
     // {
     //   defaultNavigationOptions: ({ navigation }) => ({
-    //     tabBarIcon: ({ focused, tintColor }) =>
-    //       getTabBarIcon(navigation, focused, tintColor),
+    //     tabBarIcon: ({ focused, horizontal, tintColor }) => {
+    //       const { routeName } = navigation.state;
+    //       let IconComponent = Ionicons;
+    //       let iconName;
+    //       if (routeName === 'Home') {
+    //         iconName = `ios-information-circle${focused ? '' : '-outline'}`;
+    //         // Sometimes we want to add badges to some icons. 
+    //         // You can check the implementation below.
+    //         IconComponent = HomeIconWithBadge; 
+    //       } else if (routeName === 'Settings') {
+    //         iconName = `ios-options`;
+    //       }
+  
+    //       // You can return any component that you like here!
+    //       return <IconComponent name={iconName} size={25} color={tintColor} />;
+    //     },
     //   }),
     //   tabBarOptions: {
     //     activeTintColor: 'tomato',
@@ -63,7 +78,8 @@ const RootStack = createSwitchNavigator(
      Home : Home,
      ListChat: ListChat,
     Chat: Chat,
-    Personalize:Personalize
+    Personalize:Personalize,
+    Edit:Edit
   },
   {
     initialRouteName: 'Login',  

@@ -31,6 +31,9 @@
       <provider android:authorities="com.facebook.app.FacebookContentProvider232473897591905"
           android:name="com.facebook.FacebookContentProvider"
           android:exported="true" />
+      <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyAt6BSZjn_B1YBz9Nq2B3UHJwVQ5stEMRw"/>
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

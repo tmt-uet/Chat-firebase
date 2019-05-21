@@ -1,20 +1,11 @@
-/**
- * @format
- */
-
-
 import {AppRegistry, StyleSheet, Text,View} from 'react-native';
 import React, {Component} from 'react'
-
 import {name as appName} from './app.json';
-
-// import Login from './src/screens/Login'
-//import Home from './src/screens/Home'
-//import GG from './GG'
 import RootNavigation from './src/navigations/RootNavigation'
-// import TestFireBase from './TestFireBase'
 import test_Image from './test_Image'
 import Splash from './src/screens/Splash'
+import testMap from './testMap'
+import Example from './Example'
 class Main extends Component {
     constructor(props){
         super(props);
@@ -35,7 +26,6 @@ class Main extends Component {
     }
     
 }
-AppRegistry.registerComponent(appName, () => Main);
+AppRegistry.registerComponent(appName, () => Example);
 
 console.disableYellowBox = true;
-

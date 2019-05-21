@@ -8,15 +8,17 @@ import {
   Image,
   Button,
   TextInput,
-  ScrollView
+  ScrollView,
+  FlatList
 } from "react-native";
 
 import { StackNavigator } from "react-navigation";
 import Spinner from "react-native-loading-spinner-overlay";
-
+import SearchInput, { createFilter } from 'react-native-search-filter';
 import FirebaseSvc from '../../FirebaseSvc'
 // var name, uid, email;
 import { Container, Header, Content, List, ListItem, Left, Body, Right, Thumbnail, Text } from 'native-base';
+const KEYS_TO_FILTERS = ['name', 'email'];
 export default class ListChat extends Component {
   state = {
     name: "",
@@ -29,37 +31,48 @@ export default class ListChat extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      dataSource: new ListView.DataSource({
-        rowHasChanged: (row1, row2) => row1 !== row2
-      }),
-      loading: true
+      searchTerm: '',
+      loading: true,
+       data:[]
     };
-    this.friendsRef = this.getRef().child("users");
-  }
+    this.friendsRef = this.getRef().child("newChat");
+    this.user=FirebaseSvc.auth().currentUser;
+    // this.listenForItems(this.friendsRef);
 
+  }
+  searchUpdated(term) {
+    this.setState({ searchTerm: term })
+  }
   getRef() {
     return FirebaseSvc.database().ref();
   }
 
-  listenForItems(friendsRef) {
+  async listenForItems(friendsRef) {
     var user = FirebaseSvc.auth().currentUser;
-    
-    friendsRef.on("value", snap => {
+    console.log('----------')
+    console.log("user",user.uid)
+    await friendsRef.on("value", async snap => {
       // get children as an array
       var items = [];
-      snap.forEach(child => {
-        if (child.val().email != user.email)
+      await snap.forEach(child => {
+        if (child.val().uid != user.uid)
+          console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+          console.log(child.val())
           items.push({
             name: child.val().name,
-            uid: child.val().userId,
-            email: child.val().email,
-            avatar: child.val().avatar
+            uid: child.val().friend,
+            email: child.val().emailFr,
+            avatar: child.val().avatar,
+            text: child.val().text,
+            createdAt: child.val().createdAt,
           });
       });
-
+      
+      var a = JSON.stringify(items)
       this.setState({
-        dataSource: this.state.dataSource.cloneWithRows(items),
-        loading: false
+       
+        loading: false,
+        data :JSON.parse(a)
       });
     });
   }
@@ -75,17 +88,22 @@ export default class ListChat extends Component {
       elevation: null
     },
   };
-
+  getTime(time){
+    var t = new Date(time)
+    var hours = t.getHours()
+    var minutes = t.getMinutes()
+    return hours + ':'+ minutes
+  }
   renderRow = rowData => {
+    console.log()
     return (
-     
        <Content >
           <List >
             <ListItem avatar onPress={() => {
-              name = rowData.name;
-              email = rowData.email;
-              uid = rowData.uid;
-              avatar = rowData.avatar;
+              name = rowData.item.name;
+              email = rowData.item.emailFr;
+              uid = rowData.item.uid;
+              avatar = rowData.item.avatar;
               this.props.navigation.navigate("Chat", {
                 name: name,
                 email: email,
@@ -94,14 +112,14 @@ export default class ListChat extends Component {
               });
             }}>
               <Left>
-                <Thumbnail source={{ uri: rowData.avatar }} />
+                <Thumbnail source={{ uri: rowData.item.avatar }} />
               </Left>
               <Body>
-                <Text>{ rowData.name }</Text>
-                <Text note>Tin nhắn mới nhất</Text>
+                <Text>{ rowData.item.name }</Text>
+                <Text note>{rowData.item.text}</Text>
               </Body>
               <Right>
-                <Text note>3:30 pm</Text>
+                <Text note>{this.getTime(rowData.item.createdAt)}</Text>
               </Right>
             </ListItem>
           </List>
@@ -110,15 +128,22 @@ export default class ListChat extends Component {
   };
 
   render() {
+    const {data} = this.state
+     const filteredName = data.filter(createFilter(this.state.searchTerm, KEYS_TO_FILTERS))
     return (
-      <View style={styles.container}>
-        <View style={styles.topGroup}>
-          <Text style={styles.myFriends}>My Friends</Text>
-        </View>
+      <View >
+        <Header style={{backgroundColor: '#4db8ff', width :'100%'}}>
+          <SearchInput 
+            onChangeText={(term) => { this.searchUpdated(term) }} 
+            style={styles.searchInput}
+            placeholder="Tìm bạn bè ..."
+            />
+        </Header>
         <ScrollView>
-          <ListView
-            dataSource={this.state.dataSource}
-            renderRow={this.renderRow}
+          <FlatList
+            data={filteredName}
+            renderItem={this.renderRow}
+            style={{marginBottom:70}}
           />
         </ScrollView>
         <Spinner visible={this.state.loading} />
@@ -146,9 +171,6 @@ const styles = StyleSheet.create({
   myFriends: {
     flex: 1,
     color: "#3A5BB1",
-    // tintColor: "#fff",
-    //secondaryColor: '#E9E9E9',
-    //grayColor: '#A5A5A5',
     fontSize: 16,
     padding: 5
   },
@@ -168,5 +190,11 @@ const styles = StyleSheet.create({
   profileName: {
     marginLeft: 6,
     fontSize: 16
+  },
+  searchInput:{
+    width:'100%',
+    borderColor: '#4db8ff',
+    borderWidth: 1,
+    borderRadius: 40,
   }
 });

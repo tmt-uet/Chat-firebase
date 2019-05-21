@@ -19,7 +19,7 @@ import { GiftedChat } from "react-native-gifted-chat";
 import ImagePicker from 'react-native-image-picker';
 import propTypes from "prop-types";
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import {Header, Left, Right, Body, Button} from 'native-base'
+import {Header, Left, Right, Body, Button,Icon, Fab, Footer, FooterTab} from 'native-base'
 import NavigationBar from "react-native-navbar";
 var options = {
   title: 'Select Avatar',
@@ -29,17 +29,21 @@ var options = {
     path: 'images',
   },
 };
-var name, uid, email;         //luu thong tin cuar thang trong room chat
-import FirebaseSvc from '../FirebaseSvc'
 
+var name, uid, email, avatar;         //luu thong tin cuar thang trong room chat
+import FirebaseSvc from '../FirebaseSvc'
 export default class Chat extends React.Component {
-//   static propTypes = {
-//     user: propTypes.object,
-// };
   constructor(props){
     super(props)
     state = {
       messages: [],
+      active: false,
+      sender:{
+        uid:"",
+        email:"",
+        avatar:"",
+        
+      }
     }
     this.user=FirebaseSvc.auth().currentUser;
     console.log("User dang login nayyyyyyyy:   " + this.user.uid);
@@ -49,14 +53,17 @@ export default class Chat extends React.Component {
     uid = params.uid;
     name = params.name;
     email = params.email;
+    avatar = params.avatar
     
     console.log("User dang login nayyyyyyyy:   " + uid);
 
     console.log("email cua thang trong room chat day neeeeeeeeeeeeeeeee    "+ email);
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
-    this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui
-  
+    this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui(dang dang nhap)
+    console.log("errorrrrrrrrrrrrrrrrrrrr        ")
+    console.log(this.sender)
+    // this.user=FirebaseSvc.auth().currentUser;
   }
   generateChatId(){
     if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
@@ -70,8 +77,12 @@ export default class Chat extends React.Component {
     const userRef= this.getRef().child("users")
     userRef.on("value",snap=>{
       snap.forEach(child=>{
-        if(child.val().email==this.user.email)
+        if(child.val().email==this.user.email){
+          console.log('ahihihihihihihihi')
           callback(child.val())
+
+        }
+
 
 
       })
@@ -84,21 +95,37 @@ export default class Chat extends React.Component {
     chatRef.on("value", snap => {
       // get children as an array
       var items = [];
+      // console.log(this.user,userId)
       snap.forEach(child => {
-        items.push({
-          _id: child.val().createdAt,
-          text: child.val().text,
-          createdAt: new Date(child.val().createdAt),
-          user: {
-            _id: child.val().uid,
-            avatar:child.val().avatar,
-            name:child.val().name
-          },
-          image:child.val().image
-        });
+        if(child.val().uid == this.user.uid){
+          items.push({
+            _id: child.val().createdAt,
+            text: child.val().text,
+            createdAt: new Date(child.val().createdAt),
+            user: {
+              _id: child.val().uid,
+              avatar: this.sender.avatar,
+              name:child.val().name
+            },
+            image:child.val().image
+          });
+        }else{
+          items.push({
+            _id: child.val().createdAt,
+            text: child.val().text,
+            createdAt: new Date(child.val().createdAt),
+            user: {
+              _id: child.val().uid,
+              avatar:avatar,
+              name:child.val().name
+            },
+            image:child.val().image
+          });
+        }
+        
       });
       console.log("--------------------------------------");
-      console.log(items);
+      // console.log(items);
 
       this.setState({
         loading: false,
@@ -108,6 +135,7 @@ export default class Chat extends React.Component {
   }
   componentDidMount(){
     this.listenForItems(this.chatRefData)
+
   }
   componentWillUnmount(){
     this.chatRefData.off()
@@ -117,12 +145,12 @@ export default class Chat extends React.Component {
       messages: [
         {
           _id: 1,
-          text: 'Hello developer',
+          text: 'Welcome to chat',
           createdAt: new Date(),
           user: {
             _id: 2,
             name: 'React Native',
-            avatar: 'https://placeimg.com/140/140/any',
+            avatar: this.props.navigation.getParam('avatar'),
           },
         },
       ],
@@ -140,13 +168,20 @@ export default class Chat extends React.Component {
         text: message.text,
         createdAt: now,
         uid: this.user.uid,
-        // user:{
-        //   uid: this.user.uid,
-        //   // avatar: this.user.avatar
-        // },
         avatar:this.sender.avatar,
         order: -1 * now,
         image:''
+      });
+      FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
+        _id: now,
+        text: message.text,
+        createdAt: now,
+        uid: this.user.uid,
+        order: -1 * now,
+        friend: uid,
+        name: name, 
+        avatar: avatar,
+        emailFr : email
       });
     });
     // console.log(this.state.messages)
@@ -163,6 +198,17 @@ export default class Chat extends React.Component {
       avatar:message.avatar,
       image: message.image
     });
+    FirebaseSvc.database().ref('newChat/' + this.generateChatId +'/').update({
+      _id: now,
+      name:name,
+      text: 'Gửi hình ảnh',
+      createdAt: now,
+      uid: this.user.uid,
+      order: -1 * now,
+      friend:uid,
+      avatar:avatar, 
+      emailFr: email
+    });
   }
 
   TakePhoto=()=>{
@@ -176,10 +222,10 @@ export default class Chat extends React.Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = { uri: response.uri };
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        // const source = { uri: response.uri };
+        const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
-        console.log("anh day nayyyyyyyyy     "+source.uri)
+        // console.log("anh day nayyyyyyyyy     "+source.uri)
 
         // console.log(source)
         const message={}
@@ -200,7 +246,7 @@ export default class Chat extends React.Component {
           messages: GiftedChat.append(this.state.messages, message),
 
       });
-      console.log(this.state.messages)
+      // console.log(this.state.messages)
       this.sendImageToFb(message)
 
       }
@@ -218,10 +264,10 @@ export default class Chat extends React.Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = { uri: response.uri };
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        // const source = { uri: response.uri };
+        const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
-        console.log("anh day nayyyyyyyyy     "+source.uri)
+        // console.log("anh day nayyyyyyyyy     "+source.uri)
 
         // console.log(source)
         const message={}
@@ -242,7 +288,7 @@ export default class Chat extends React.Component {
           messages: GiftedChat.append(this.state.messages, message),
 
       });
-      console.log(this.state.messages)
+      // console.log(this.state.messages)
       this.sendImageToFb(message)
 
       }
@@ -253,8 +299,8 @@ export default class Chat extends React.Component {
 
   handleAvatarPress=(temp_user)=>{
     console.log('------------------------')
-    console.log(temp_user)
-    this.props.navigation.navigate('Personalize')
+    console.log('id',temp_user._id)
+    this.props.navigation.navigate('Personalize', {id : temp_user._id})
   }
 
   renderAudio = props => {
@@ -293,40 +339,18 @@ export default class Chat extends React.Component {
             />
         );
 };
-  handleAudio(){
-    console.log('an dc nheseeeeeeeeeeeee')
-  }
 
-  // static navigationOptions = {
-  //   headerStyle: {
-  //     backgroundColor: "#16a085",
-  //     elevation: null
-  //   },
-  //   headerRight: (
-  //     <TouchableOpacity onPress={this.handleAudio}>
-  //       <Text>Add Photo</Text>
-  //     </TouchableOpacity>
-  //   )
-  // };
-  render() {
-    const rightButtonConfig = {
-      title: <Ionicons name='ios-camera' size={28}></Ionicons>,
-      handler: () => this.TakePhoto(),
-  };
-    const leftButtonConfig={
-      title:<Ionicons name='ios-image' size={28}></Ionicons>,
-      handler: ()=>this.ChoosePhoto()
-    }
+    render() {
     return (
       <View style={{ flex: 1 }}>
         <Header style={{backgroundColor: '#4db8ff'}}>
           <Left>
             <Button transparent onPress={()=>this.props.navigation.navigate('Home')}>
-              <Ionicons name='md-arrow-back' size={28} ></Ionicons>
+              <Ionicons name='md-arrow-back' size={28} style={{color:'white'}}></Ionicons>
             </Button>
           </Left>
           <Body>
-            <Text style={{fontWeight:'bold', fontSize:20}}>
+            <Text style={{fontWeight:'bold', fontSize:20, color:'white'}}>
               {this.props.navigation.getParam('name')}
             </Text>
           </Body>
@@ -341,35 +365,17 @@ export default class Chat extends React.Component {
           user={{
             _id: this.user.uid,
           }}
-          renderActions={() => {
-            if (Platform.OS === "ios") {
-                return (
-                    <Ionicons
-                        name="ios-mic"
-                        size={35}
-                        hitSlop={{ top: 20, bottom: 20, left: 50, right: 50 }}
-                        color={this.state.startAudio ? "red" : "black"}
-                        style={{
-                            bottom: 50,
-                            right: Dimensions.get("window").width / 2,
-                            position: "absolute",
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 0 },
-                            shadowOpacity: 0.5,
-                            zIndex: 2,
-                            backgroundColor: "transparent"
-                        }}
-                        onPress={this.handleAudio}
-                    />
-                );
-            }
-        }}
-        />
-        <NavigationBar
-            
-            rightButton={rightButtonConfig}
-            leftButton={leftButtonConfig}
-        />
+          />
+        <Footer style={{height:30}}>
+          <FooterTab style={{backgroundColor:'white'}}>
+            <Button>
+              <Icon name="camera" style={{color:"#3399ff"}} onPress={()=>this.TakePhoto()}/>
+            </Button>
+            <Button>
+              <Icon name="image" style={{color:'#3399ff'}} onPress={()=>this.ChoosePhoto()} />
+            </Button>
+          </FooterTab>
+        </Footer>
       </View>
     );
   }
