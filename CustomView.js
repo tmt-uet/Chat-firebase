@@ -10,6 +10,10 @@ import {
 import MapView from 'react-native-maps';
 
 export default class CustomView extends React.Component {
+  componentDidMount(){
+    // console.log('ahihihihihi')
+    // console.log(this.props)
+  }
   render() {
     if (this.props.currentMessage.location) {
       return (

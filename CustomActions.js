@@ -20,23 +20,12 @@ export default class CustomActions extends React.Component {
       modalVisible: false,
     };
     this.onActionsPress = this.onActionsPress.bind(this);
-    this.selectImages = this.selectImages.bind(this);
   }
 
-  setImages(images) {
-    this._images = images;
-  }
 
-  getImages() {
-    return this._images;
-  }
-
-  setModalVisible(visible = false) {
-    this.setState({modalVisible: visible});
-  }
 
   onActionsPress() {
-    const options = ['Choose From Library', 'Send Location', 'Cancel'];
+    const options = ['Send Location', 'Cancel'];
     const cancelButtonIndex = options.length - 1;
     this.context.actionSheet().showActionSheetWithOptions({
       options,
@@ -45,30 +34,29 @@ export default class CustomActions extends React.Component {
     (buttonIndex) => {
       switch (buttonIndex) {
         case 0:
-          this.setModalVisible(true);
-          break;
-        case 1:
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
+          // navigator.geolocation.getCurrentPosition(
+          //   (position) => {
               this.props.onSend({
+                text:'',
                 location: {
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
+                  // latitude: position.coords.latitude,
+                  // longitude: position.coords.longitude,
+                  latitude: 21.0391661,
+                  longitude: 105.7848302,
                 },
+                image:'',
               });
-            },
-            (error) => alert(error.message),
-            {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-          );
+          //   },
+          //   (error) => alert(error.message),
+          //   {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+          // );
           break;
         default:
       }
     });
   }
 
-  selectImages(images) {
-    this.setImages(images);
-  }
+
 
   renderNavBar() {
     return (

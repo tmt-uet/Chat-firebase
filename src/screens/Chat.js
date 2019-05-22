@@ -15,12 +15,15 @@ import {
   KeyboardAvoidingView
 } from "react-native";
 import { StackNavigator } from "react-navigation";
-import { GiftedChat } from "react-native-gifted-chat";
+import {GiftedChat, Actions, Bubble, SystemMessage} from 'react-native-gifted-chat';
 import ImagePicker from 'react-native-image-picker';
 import propTypes from "prop-types";
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import {Header, Left, Right, Body, Button,Icon, Fab, Footer, FooterTab} from 'native-base'
 import NavigationBar from "react-native-navbar";
+import CustomActions from '../../CustomActions';
+import CustomView from '../../CustomView';
+
 var options = {
   title: 'Select Avatar',
   customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
@@ -34,16 +37,19 @@ var name, uid, email, avatar;         //luu thong tin cuar thang trong room chat
 import FirebaseSvc from '../FirebaseSvc'
 export default class Chat extends React.Component {
   constructor(props){
-    super(props)
+    super(props);
+    this.renderCustomActions = this.renderCustomActions.bind(this);
+    this.renderBubble = this.renderBubble.bind(this);
+    this.renderSystemMessage = this.renderSystemMessage.bind(this);
+
     state = {
       messages: [],
-      active: false,
       sender:{
         uid:"",
         email:"",
         avatar:"",
         
-      }
+      },
     }
     this.user=FirebaseSvc.auth().currentUser;
     console.log("User dang login nayyyyyyyy:   " + this.user.uid);
@@ -55,15 +61,59 @@ export default class Chat extends React.Component {
     email = params.email;
     avatar = params.avatar
     
-    console.log("User dang login nayyyyyyyy:   " + uid);
-
+    console.log("User dang trong room chat nayyyyy   " + uid);
+    console.log('thu log ra params tuw list chat')
+    console.log(params)
     console.log("email cua thang trong room chat day neeeeeeeeeeeeeeeee    "+ email);
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
     this.chatRefData=this.chatRef.orderByChild("order")
     this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui(dang dang nhap)
     console.log("errorrrrrrrrrrrrrrrrrrrr        ")
-    console.log(this.sender)
+    // console.log(this.sender)
     // this.user=FirebaseSvc.auth().currentUser;
+  }
+  renderCustomActions(props) {
+    if (Platform.OS === 'android') {
+      return (
+        <CustomActions
+          {...props}
+        />
+      );
+    }
+ }
+ renderSystemMessage(props) {
+  return (
+    <SystemMessage
+      {...props}
+      containerStyle={{
+        marginBottom: 15,
+      }}
+      textStyle={{
+        fontSize: 14,
+      }}
+    />
+  );
+}
+  renderCustomView(props) {
+    // console.log('thuuuuuuuuuuuuuuuuuuuuuu props')
+    // console.log(props)
+    return (
+      <CustomView
+        {...props}
+      />
+    );
+  }
+  renderBubble(props) {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          left: {
+            backgroundColor: '#f0f0f0',
+          }
+        }}
+      />
+    );
   }
   generateChatId(){
     if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
@@ -73,7 +123,6 @@ export default class Chat extends React.Component {
     return FirebaseSvc.database().ref()
   }
   getSender(callback){
-    
     const userRef= this.getRef().child("users")
     userRef.on("value",snap=>{
       snap.forEach(child=>{
@@ -107,7 +156,10 @@ export default class Chat extends React.Component {
               avatar: this.sender.avatar,
               name:child.val().name
             },
-            image:child.val().image
+            image:child.val().image,
+            location:child.val().location,
+
+
           });
         }else{
           items.push({
@@ -119,13 +171,15 @@ export default class Chat extends React.Component {
               avatar:avatar,
               name:child.val().name
             },
-            image:child.val().image
+            image:child.val().image,
+            location:child.val().location,
+
           });
         }
         
       });
       console.log("--------------------------------------");
-      // console.log(items);
+      console.log(items);
 
       this.setState({
         loading: false,
@@ -158,10 +212,19 @@ export default class Chat extends React.Component {
   }
 
   onSend=(messages = []) =>{
-    this.setState({
+    // this.setState({
+    //     messages: GiftedChat.append(this.state.messages, messages),
+    // });
+    this.setState((previousState) => {
+      return {
         messages: GiftedChat.append(this.state.messages, messages),
+      };
     });
     messages.forEach(message => {
+      var temp_location={}
+      if(message.text.length<1){
+        temp_location=message.location
+      }
       var now = new Date().getTime();
       this.chatRef.push({
         _id: now,
@@ -170,7 +233,9 @@ export default class Chat extends React.Component {
         uid: this.user.uid,
         avatar:this.sender.avatar,
         order: -1 * now,
-        image:''
+        image:'',
+        location:temp_location,
+
       });
       FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
         _id: now,
@@ -181,7 +246,7 @@ export default class Chat extends React.Component {
         friend: uid,
         name: name, 
         avatar: avatar,
-        emailFr : email
+        // emailFr : email
       });
     });
     // console.log(this.state.messages)
@@ -207,7 +272,7 @@ export default class Chat extends React.Component {
       order: -1 * now,
       friend:uid,
       avatar:avatar, 
-      emailFr: email
+      // emailFr: email
     });
   }
 
@@ -299,46 +364,9 @@ export default class Chat extends React.Component {
 
   handleAvatarPress=(temp_user)=>{
     console.log('------------------------')
-    console.log('id',temp_user._id)
+    // console.log('id',temp_user._id)
     this.props.navigation.navigate('Personalize', {id : temp_user._id})
   }
-
-  renderAudio = props => {
-    return !props.currentMessage.audio ? (
-        <View />
-    ) : (
-            <Ionicons
-                name="ios-play"
-                size={35}
-                color={this.state.playAudio ? "red" : "blue"}
-                style={{
-                    left: 90,
-                    position: "relative",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.5,
-                    backgroundColor: "transparent"
-                }}
-                onPress={() => {
-                    this.setState({
-                        playAudio: true
-                    });
-                    const sound = new Sound(props.currentMessage.audio, "", error => {
-                        if (error) {
-                            console.log("failed to load the sound", error);
-                        }
-                        this.setState({ playAudio: false });
-                        sound.play(success => {
-                            console.log(success, "success play");
-                            if (!success) {
-                                Alert.alert("There was an error playing this audio");
-                            }
-                        });
-                    });
-                }}
-            />
-        );
-};
 
     render() {
     return (
@@ -365,6 +393,11 @@ export default class Chat extends React.Component {
           user={{
             _id: this.user.uid,
           }}
+          renderActions={this.renderCustomActions}
+          renderBubble={this.renderBubble}
+          renderSystemMessage={this.renderSystemMessage}
+          renderCustomView={this.renderCustomView}
+
           />
         <Footer style={{height:30}}>
           <FooterTab style={{backgroundColor:'white'}}>
@@ -382,10 +415,14 @@ export default class Chat extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "stretch",
+  footerContainer: {
+    marginTop: 5,
+    marginLeft: 10,
     marginRight: 10,
-    marginLeft: 10
-  }
+    marginBottom: 10,
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#aaa',
+  },
 });
