@@ -26,6 +26,6 @@ class Main extends Component {
     }
     
 }
-AppRegistry.registerComponent(appName, () => Main);
+AppRegistry.registerComponent(appName, () => Example);
 
 console.disableYellowBox = true;

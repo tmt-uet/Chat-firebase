@@ -8,7 +8,8 @@ import {
   ViewPropTypes,
   Text,
 } from 'react-native';
-
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import Octicons from 'react-native-vector-icons/Octicons'
 import CameraRollPicker from 'react-native-camera-roll-picker';
 import NavBar, { NavButton, NavButtonText, NavTitle } from 'react-native-nav';
 
@@ -24,38 +25,38 @@ export default class CustomActions extends React.Component {
 
 
 
+  // onActionsPress() {
+  //   this.props.onSend({
+  //     text:'',
+  //     location: {
+  //       // latitude: position.coords.latitude,
+  //       // longitude: position.coords.longitude,
+  //       latitude: 21.0391661,
+  //       longitude: 105.7848302,
+  //     },
+  //     image:'',
+  //   });
+  // }
   onActionsPress() {
-    const options = ['Send Location', 'Cancel'];
-    const cancelButtonIndex = options.length - 1;
-    this.context.actionSheet().showActionSheetWithOptions({
-      options,
-      cancelButtonIndex,
-    },
-    (buttonIndex) => {
-      switch (buttonIndex) {
-        case 0:
-          // navigator.geolocation.getCurrentPosition(
-          //   (position) => {
-              this.props.onSend({
-                text:'',
-                location: {
-                  // latitude: position.coords.latitude,
-                  // longitude: position.coords.longitude,
-                  latitude: 21.0391661,
-                  longitude: 105.7848302,
-                },
-                image:'',
-              });
-          //   },
-          //   (error) => alert(error.message),
-          //   {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-          // );
-          break;
-        default:
-      }
-    });
-  }
-
+    navigator.geolocation.getCurrentPosition(
+       (position) => {
+         console.log("wokeeey");
+         console.log(position);
+         this.props.onSend({
+          text:'',
+          location: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            // latitude: 21.0391661,
+            // longitude: 105.7848302,
+          },
+          image:'',
+         });
+       },
+       (error) => this.setState({ error: error.message }),
+       { enableHighAccuracy: false, timeout: 200000, maximumAge: 1000 },
+     );
+   }
 
 
   renderNavBar() {
@@ -108,14 +109,8 @@ export default class CustomActions extends React.Component {
       return this.props.icon();
     }
     return (
-      <View
-        style={[styles.wrapper, this.props.wrapperStyle]}
-      >
-        <Text
-          style={[styles.iconText, this.props.iconTextStyle]}
-        >
-          +
-        </Text>
+      <View>
+        <Octicons name='pin' size={28} style={{color:'dark'}}></Octicons>
       </View>
     );
   }

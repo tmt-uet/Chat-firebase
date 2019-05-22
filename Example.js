@@ -24,6 +24,14 @@ import NavigationBar from "react-native-navbar";
 import CustomActions from './CustomActions';
 import CustomView from './CustomView';
 import FirebaseSvc from './src/FirebaseSvc'
+var options = {
+  title: 'Select Avatar',
+  customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
+  storageOptions: {
+    skipBackup: true,
+    path: 'images',
+  },
+};
 
 export default class Example extends React.Component {
   constructor(props) {
@@ -38,7 +46,7 @@ export default class Example extends React.Component {
     this.renderCustomActions = this.renderCustomActions.bind(this);
     this.renderBubble = this.renderBubble.bind(this);
     this.renderSystemMessage = this.renderSystemMessage.bind(this);
-    this.chatRef=this.getRef().child("chat/"+'yQQOqrZ4FWcSpCpjTCF1RdScUSy2-CKLZGesjhEg5JT0HxjuYOeR5zSi1')
+    this.chatRef=this.getRef().child("chat/"+'I-CKLZGesjhEg5JT0HxjuYOeR5zSi1')
     this.chatRefData=this.chatRef.orderByChild("order")
 
   }
@@ -199,10 +207,21 @@ export default class Example extends React.Component {
       />
     );
   }
-
+  sendImageToFb(message){
+    var now = new Date().getTime();
+    this.chatRef.push({
+      _id: now,
+      text: message.text,
+      createdAt: now,
+      uid:'yQQOqrZ4FWcSpCpjTCF1RdScUSy2' ,
+      order: -1 * now,
+      avatar:'',
+      image: message.image
+    });
+  }
   TakePhoto=()=>{
     ImagePicker.launchCamera(options, (response) => {
-      // console.log('Response = ', response);
+      console.log('Response = ', response);
     
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -217,31 +236,32 @@ export default class Example extends React.Component {
         // console.log("anh day nayyyyyyyyy     "+source.uri)
 
         // console.log(source)
-      //   const message={}
-      //   let now = new Date().getTime();
-      //   message.createdAt=now,
-      //   message.uid=this.user.uid,
+        const message={}
+        let now = new Date().getTime();
+        message.createdAt=now,
+        message.uid='',
 
-      //   message._id=now
-      //   message.text=''
-
-
-      //   message.avatar=this.sender.avatar
-      //   message.order = -1*now
-      //   message.image=source.uri
+        message._id=now
+        message.text=''
 
 
-      //   this.setState({
-      //     messages: GiftedChat.append(this.state.messages, message),
+        message.avatar=''
+        message.order = -1*now
+        message.image=source.uri
 
-      // });
-      // // console.log(this.state.messages)
-      // this.sendImageToFb(message)
 
+        this.setState({
+          messages: GiftedChat.append(this.state.messages, message),
+
+      });
+      // console.log(this.state.messages)
+      this.sendImageToFb(message)
       }
     });
+    console.log('ayyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
   
   } 
+
   ChoosePhoto=()=>{
     ImagePicker.launchImageLibrary(options, (response) => {
       // console.log('Response = ', response);
@@ -259,26 +279,26 @@ export default class Example extends React.Component {
         // console.log("anh day nayyyyyyyyy     "+source.uri)
 
         // console.log(source)
-      //   const message={}
-      //   let now = new Date().getTime();
-      //   message.createdAt=now,
-      //   message.uid=this.user.uid,
+        const message={}
+        let now = new Date().getTime();
+        message.createdAt=now,
+        message.uid='',
 
-      //   message._id=now
-      //   message.text=''
-
-
-      //   message.avatar=this.sender.avatar
-      //   message.order = -1*now
-      //   message.image=source.uri
+        message._id=now
+        message.text=''
 
 
-      //   this.setState({
-      //     messages: GiftedChat.append(this.state.messages, message),
+        message.avatar=''
+        message.order = -1*now
+        message.image=source.uri
 
-      // });
-      // // console.log(this.state.messages)
-      // this.sendImageToFb(message)
+
+        this.setState({
+          messages: GiftedChat.append(this.state.messages, message),
+
+      });
+      // console.log(this.state.messages)
+      this.sendImageToFb(message)
 
       }
     });
