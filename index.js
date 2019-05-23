@@ -7,7 +7,7 @@ import {AppRegistry, StyleSheet, Text,View} from 'react-native';
 import React, {Component} from 'react'
 
 import {name as appName} from './app.json';
-
+import testMap from './testMap'
 // import Login from './src/screens/Login'
 //import Home from './src/screens/Home'
 //import GG from './GG'

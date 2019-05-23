@@ -15,12 +15,14 @@ import {
   KeyboardAvoidingView
 } from "react-native";
 import { StackNavigator } from "react-navigation";
-import { GiftedChat } from "react-native-gifted-chat";
+import {GiftedChat, Actions, Bubble, SystemMessage} from 'react-native-gifted-chat';
 import ImagePicker from 'react-native-image-picker';
 import propTypes from "prop-types";
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import {Header, Left, Right, Body, Button,Icon, Fab, Footer, FooterTab} from 'native-base'
 import NavigationBar from "react-native-navbar";
+import CustomActions from '../../CustomActions';
+import CustomView from '../../CustomView';
 var options = {
   title: 'Select Avatar',
   customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
@@ -37,10 +39,12 @@ export default class Chat extends React.Component {
 //     user: propTypes.object,
 // };
   constructor(props){
-    super(props)
+    super(props);
+    this.renderCustomActions = this.renderCustomActions.bind(this);
+    this.renderBubble = this.renderBubble.bind(this);
+    this.renderSystemMessage = this.renderSystemMessage.bind(this);
     state = {
       messages: [],
-      active: false
     }
     this.user=FirebaseSvc.auth().currentUser;
     console.log("User dang login nayyyyyyyy:   " + this.user.uid);
@@ -59,6 +63,49 @@ export default class Chat extends React.Component {
     this.chatRefData=this.chatRef.orderByChild("order")
     this.getSender(res=>{this.sender=res})      //lay ra thong tin thang gui(dang dang nhap)
     // this.user=FirebaseSvc.auth().currentUser;
+  }
+  renderCustomActions(props) {
+    if (Platform.OS === 'android') {
+      return (
+        <CustomActions
+          {...props}
+        />
+      );
+    }
+ }
+ renderSystemMessage(props) {
+  return (
+    <SystemMessage
+      {...props}
+      containerStyle={{
+        marginBottom: 15,
+      }}
+      textStyle={{
+        fontSize: 14,
+      }}
+    />
+  );
+}
+  renderCustomView(props) {
+    // console.log('thuuuuuuuuuuuuuuuuuuuuuu props')
+    // console.log(props)
+    return (
+      <CustomView
+        {...props}
+      />
+    );
+  }
+  renderBubble(props) {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          left: {
+            backgroundColor: '#f0f0f0',
+          }
+        }}
+      />
+    );
   }
   generateChatId(){
     if (this.user.uid > uid) return `${this.user.uid}-${uid}`;
@@ -99,7 +146,8 @@ export default class Chat extends React.Component {
               avatar: this.sender.avatar,
               name:child.val().name
             },
-            image:child.val().image
+            image:child.val().image,
+            location:child.val().location,
           });
         }else{
           items.push({
@@ -111,13 +159,17 @@ export default class Chat extends React.Component {
               avatar:avatar,
               name:child.val().name
             },
-            image:child.val().image
+            image:child.val().image,
+            location:child.val().location,
           });
         }
         if(child.val().image !== ''){
           text='Nhận hình ảnh'
+        }else if(child.val().location){
+          text='Nhận vị trí'
+        
         }else{
-          text=child.val().text
+          text = child.val().text
         }
         var now = new Date().getTime();
         FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
@@ -167,10 +219,20 @@ export default class Chat extends React.Component {
   }
 
   onSend=(messages = []) =>{
-    this.setState({
+// this.setState({
+    //     messages: GiftedChat.append(this.state.messages, messages),
+    // });
+    this.setState((previousState) => {
+      return {
         messages: GiftedChat.append(this.state.messages, messages),
+      };
     });
+
     messages.forEach(message => {
+      var temp_location={},text=''
+      if(message.text.length<1){
+        temp_location=message.location
+      }
       var now = new Date().getTime();
       this.chatRef.push({
         _id: now,
@@ -183,11 +245,18 @@ export default class Chat extends React.Component {
         // },
         avatar:this.sender.avatar,
         order: -1 * now,
-        image:''
+        image:'',
+        location:temp_location,
       });
+      if(message.text.length<1){
+        text='Nhận vị trí'
+      
+      }else{
+        text = message.text
+      }
       FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
         _id: now,
-        text: message.text,
+        text: text,
         createdAt: now,
         uid: this.user.uid,
         order: -1 * now,
@@ -322,45 +391,7 @@ export default class Chat extends React.Component {
     this.props.navigation.navigate('Personalize', {id : temp_user._id                                                                                           })
   }
 
-  renderAudio = props => {
-    return !props.currentMessage.audio ? (
-        <View />
-    ) : (
-            <Ionicons
-                name="ios-play"
-                size={35}
-                color={this.state.playAudio ? "red" : "blue"}
-                style={{
-                    left: 90,
-                    position: "relative",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.5,
-                    backgroundColor: "transparent"
-                }}
-                onPress={() => {
-                    this.setState({
-                        playAudio: true
-                    });
-                    const sound = new Sound(props.currentMessage.audio, "", error => {
-                        if (error) {
-                            console.log("failed to load the sound", error);
-                        }
-                        this.setState({ playAudio: false });
-                        sound.play(success => {
-                            console.log(success, "success play");
-                            if (!success) {
-                                Alert.alert("There was an error playing this audio");
-                            }
-                        });
-                    });
-                }}
-            />
-        );
-};
-  handleAudio(){
-    console.log('an dc nheseeeeeeeeeeeee')
-  }
+
   
   render() {
     return (
@@ -387,30 +418,11 @@ export default class Chat extends React.Component {
           user={{
             _id: this.user.uid,
           }}
-          renderActions={() => {
-            if (Platform.OS === "ios") {
-                return (
-                    <Ionicons
-                        name="ios-mic"
-                        size={35}
-                        hitSlop={{ top: 20, bottom: 20, left: 50, right: 50 }}
-                        color={this.state.startAudio ? "red" : "black"}
-                        style={{
-                            bottom: 50,
-                            right: Dimensions.get("window").width / 2,
-                            position: "absolute",
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 0 },
-                            shadowOpacity: 0.5,
-                            zIndex: 2,
-                            backgroundColor: "transparent"
-                        }}
-                        onPress={this.handleAudio}
-                    />
-                );
-            }
-        }}
-        />
+          renderActions={this.renderCustomActions}
+          renderBubble={this.renderBubble}
+          renderSystemMessage={this.renderSystemMessage}
+          renderCustomView={this.renderCustomView}
+/>
         <Footer style={{height:30}}>
           <FooterTab style={{backgroundColor:'white'}}>
             <Button>
@@ -432,5 +444,15 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
     marginRight: 10,
     marginLeft: 10
-  }
+  },
+  footerContainer: {
+    marginTop: 5,
+    marginLeft: 10,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#aaa',
+  },
 });
