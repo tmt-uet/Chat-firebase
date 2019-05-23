@@ -9,8 +9,7 @@ import {
   Button,
   TextInput,
   ScrollView,
-  FlatList,
-  AsyncStorage
+  FlatList
 } from "react-native";
 
 import { StackNavigator } from "react-navigation";
@@ -54,13 +53,15 @@ export default class ListChat extends Component {
 
   async listenForItems(friendsRef) {
     var user = FirebaseSvc.auth().currentUser;
-    // console.log('----------')
-    // console.log("user",user.uid)
+    console.log('----------')
+    console.log("user",user.uid)
     await friendsRef.on("value", async snap => {
       // get children as an array
       var items = [];
-      await snap.forEach(async child => {
+      await snap.forEach(child => {
         if (child.val().uid == user.uid && child.val().friend !== user.id){
+          console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+          console.log(child.val())
           items.push({
             name: child.val().nameFr,
             uid: child.val().friend,
@@ -69,11 +70,10 @@ export default class ListChat extends Component {
             text: child.val().text,
             createdAt: child.val().createdAt,
           });
-          // await AsyncStorage.setItem("avatar", child.val().avatar)
         }
         if (child.val().friend == user.uid && child.val().uid !== user.uid ){
-          // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-          // console.log(child.val())
+          console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+          console.log(child.val())
           items.push({
             name: child.val().name,
             uid: child.val().uid,
@@ -82,13 +82,9 @@ export default class ListChat extends Component {
             text: child.val().text,
             createdAt: child.val().createdAt,
           });
-          // await AsyncStorage.setItem("avatar", child.val().avatarFr)
-         
         }
           
         });
-        // let b = await AsyncStorage.getItem('avatar')
-        // console.log('kkkkkkkkkkkkkkkkkkkkkkkk', b)
         var a = JSON.stringify(items)
         this.setState({
         
@@ -116,7 +112,7 @@ export default class ListChat extends Component {
     return hours + ':'+ minutes
   }
   renderRow = rowData => {
-    // console.log(rowData.item)
+    console.log(rowData.item)
     return (
        <Content >
           <List >

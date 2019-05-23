@@ -10,7 +10,6 @@ import {
   Right,
   Badge, Thumbnail, H3,Button
 } from "native-base";
-import {AsyncStorage} from 'react-native'
 //import {connect} from "react-redux";
 //import firebase from "react-native-firebase";
 import styles from "./style";
@@ -41,7 +40,8 @@ class Personalize extends React.PureComponent {
     sender: {},
     loading:true,
     nameHost : '',
-    avatarHost:''
+    avatarHost:'',
+    user:{}
   }
   constructor(props) {
     super(props);
@@ -71,38 +71,46 @@ class Personalize extends React.PureComponent {
     }
   }
   getRelationship(){
+    console.log('hhhhhhhhhhhhhhhhhh')
     if(host.isHost == false){
       if(this.props.navigation.getParam('relationship') ){
         host.relationship = this.props.navigation.getParam('relationship')
+        
       }else{
+        let count = 0;
         const relationshipRef= this.getRef().child("relationship")
         relationshipRef.on("value",snap=>{
           snap.forEach(child=>{
             if(child.val().SendId==host.uid 
               && child.val().ResId == this.user.uid
               && child.val().State == 0){    
+                count = count + 1;
                 host.relationship = 'isInvited'
                 return;
             }else if(child.val().ResId==host.uid 
               && child.val().SendId == this.user.uid
               && child.val().State == 0){
+                count = count + 1;
                 host.relationship = 'invited'
                 return;
             }else if( child.val().ResId==host.uid 
               && child.val().SendId == this.user.uid
               && child.val().State == 1){
+                count = count + 1;
                 host.relationship='friend'
                 return;
             }else if( child.val().SendId==host.uid 
               && child.val().ResId == this.user.uid
               && child.val().State == 1){
+                count = count + 1;
                 host.relationship='friend'
                 return;
             }   
           })
-          host.relationship = 'notRelationship'
+          if(count == 0) {
+            host.relationship = 'notRelationship'
+          }
         })
-
       }
     }else{
       host.relationship = 'host'
@@ -122,7 +130,16 @@ class Personalize extends React.PureComponent {
       })
     })
   }
-
+  getUser(callback){
+    const userRef= this.getRef().child("users")
+    userRef.on("value",snap=>{
+      snap.forEach(child=>{
+        if(child.val().userId==this.user.uid){    
+          callback(child.val())
+        }
+      })
+    })
+  }
   async UploadAvatar(avatar){
     this.friendsRef = this.getRef().child("users");
     // console.log('uid', this.friendsRef)
@@ -201,6 +218,7 @@ class Personalize extends React.PureComponent {
     // }
   };
   deleteR(key){
+    console.log(key)
     FirebaseSvc.database().ref('relationship/'+key +'/').remove()
     host.relationship = 'notRelationship'
   }
@@ -228,41 +246,27 @@ class Personalize extends React.PureComponent {
     else{
       var key =  host.uid+ '-' + this.user.uid 
     }
+    console.log(key)
     FirebaseSvc.database().ref('relationship/'+key +'/').update({State:1})
     host.relationship = 'friend'
   }
-  sendRequest= async()=>{
-    console.log('co chay ddc kkkkkkkkkkkkkkk')
-    await AsyncStorage.getItem('name').then((data) => {
-      console.log('day co gi kkkkkkk',data)
+  sendRequest(){
 
-      this.setState({
-        nameHost:data, 
-      })
-    }).done()
-    await AsyncStorage.getItem('avatar').then((data) => {
-      this.setState({
-        avatarHost:data, 
-      })
-    }).done()
     if(host.uid < this.user.uid){
       var key = this.user.uid + '-' + host.uid
     }
     else{
       var key =  host.uid+ '-' + this.user.uid 
     }
-    console.log('bbbbbbbbbbbbbbbbbbbbbbbbbbbb')
-    console.log(this.state.avatarHost)
-    console.log('nnnnnnnnnnnnnnnnnnnnnnnn')
-
+    console.log(key)
     FirebaseSvc.database().ref('relationship/'+key +'/').update(
       {
         ResId: host.uid,
         SendId: this.user.uid,
         ResName: this.state.sender.name,
-        SendName: this.state.nameHost,
+        SendName: this.state.user.name,
         ResAvatar:this.state.sender.avatar,
-        SendAvatar:this.state.avatarHost,
+        SendAvatar:this.state.user.avatar,
         State:0
       }
     )
@@ -276,10 +280,14 @@ class Personalize extends React.PureComponent {
       avatar:this.state.sender.avatar
     });
   }
-  componentDidMount() {
+  componentDidMount = async()=> {
     this._isMounted = true;
-    this.getRelationship()
+    await this.getRelationship()
     this.getSender((res) => this.setState({sender: res}))
+    if(host.relationship == 'notRelationship'){
+      this.getUser((res) => this.setState({user: res}))
+    }
+    
   }
 
   componentWillUnmount(){
@@ -288,6 +296,7 @@ class Personalize extends React.PureComponent {
 
   render() {
    let {sender} = this.state
+   console.log('ban ban ban ban ban', host.relationship)
     return (
       <Container style={{ zIndex: 2 }}>
         <Content

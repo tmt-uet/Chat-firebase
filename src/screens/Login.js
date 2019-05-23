@@ -89,21 +89,20 @@ export default class Login extends Component{
         );
       
     };
-    testAsync=async()=>{
-      let a=await AsyncStorage.getItem("avatar")
-      console.log('aaaaaaaaaaaaaaaaaaaaassssssssssssss')
-      console.log(a)
+    // testAsync=async()=>{
+    //   let a=await AsyncStorage.getItem("avatar")
+    //   console.log('aaaaaaaaaaaaaaaaaaaaassssssssssssss')
+    //   console.log(a)
 
-    }
+    // }
     loginSuccess = async () => {
       console.log('login successful, navigate to chat.');
-      await AsyncStorage.multiSet([
-        ["email", this.state.email],
-        ["avatar", this.state.avatar],
-        ['name', this.state.name],
-    ]) 
-    console.log('avatarrrrrrrrrrrrr'+this.state.avatar)
-    this.testAsync()
+    //   await AsyncStorage.multiSet([
+    //     ["email", this.state.email],
+    //     ['name', this.state.name],
+    // ]) 
+    // console.log('avatarrrrrrrrrrrrr'+this.state.avatar)
+    // this.testAsync()
 
 
       this.props.navigation.navigate('Home', {

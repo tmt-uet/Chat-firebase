@@ -31,15 +31,17 @@ export default class User extends Component {
       // console.log(snap)
       var items = [];
       await snap.forEach(child => {
-        if (child.val().uid != user.uid)
-          // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-          // console.log(child.val())
+        if (child.val().uid !== user.uid){
           items.push({
             name: child.val().name,
             uid: child.val().userId,
             email: child.val().email,
             avatar: child.val().avatar,
           });
+        }
+          // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+          // console.log(child.val())
+          
       });
       
       var a = JSON.stringify(items)
