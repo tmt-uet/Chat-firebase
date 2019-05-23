@@ -48,6 +48,7 @@ export default class Chat extends React.Component {
     state = {
       messages:[],
       loading:true,
+      tung:true,
     }
     this.user=FirebaseSvc.auth().currentUser;
     console.log("User dang login nayyyyyyyy:   " + this.user.uid);
@@ -153,6 +154,19 @@ export default class Chat extends React.Component {
             image:child.val().image,
             location:child.val().location,
           });
+           // FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
+        //   _id: now,
+        //   text: text,
+        //   createdAt: now,
+        //   uid: this.user.uid,
+        //   order: -1 * now,
+        //   friend: uid,
+        //   nameFr: name, 
+        //   avatarFr: avatar,
+        //   emailFr : email,
+        //   email:this.sender.email,
+        //   avatar:this.sender.avatar
+        // });
         }else{
           items.push({
             _id: child.val().createdAt,
@@ -166,6 +180,19 @@ export default class Chat extends React.Component {
             image:child.val().image,
             location:child.val().location,
           });
+           // FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
+        //   _id: now,
+        //   text: text,
+        //   createdAt: now,
+        //   uid: this.user.uid,
+        //   order: -1 * now,
+        //   friend: uid,
+        //   nameFr: name, 
+        //   avatarFr: avatar,
+        //   emailFr : email,
+        //   email:this.sender.email,
+        //   avatar:this.sender.avatar
+        // });
         }
         
        
@@ -247,7 +274,7 @@ export default class Chat extends React.Component {
       // }
       FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
         _id: now,
-        text: message.text,
+        text: text,
         createdAt: now,
         uid: this.user.uid,
         order: -1 * now,

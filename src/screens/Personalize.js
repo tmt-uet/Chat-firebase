@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, ImageBackground, Alert } from "react-native";
+import { View, ImageBackground, Alert , ToastAndroid} from "react-native";
 import {
   Content,
   Text,
@@ -31,6 +31,19 @@ var options = {
     path: 'images',
   },
 };
+const Toast = (props) => {
+  if (props.visible) {
+    ToastAndroid.showWithGravityAndOffset(
+      props.message,
+      ToastAndroid.LONG,
+      ToastAndroid.TOP,
+      25,
+      50,
+    );
+    return null;
+  }
+  return null;
+};
 
 var host={isHost:false, uid:'', relationship:''};
 class Personalize extends React.PureComponent {
@@ -41,7 +54,9 @@ class Personalize extends React.PureComponent {
     loading:true,
     nameHost : '',
     avatarHost:'',
-    user:{}
+    user:{},
+    visibleDelete: false,
+    visibleSend: false,
   }
   constructor(props) {
     super(props);
@@ -50,6 +65,9 @@ class Personalize extends React.PureComponent {
     // console.log('userprop', sender)
     this.user=FirebaseSvc.auth().currentUser;
     this.getHost();
+    if(this.state.sender.email!=''){
+      this.state.loading=false
+    }  
   }
   getHost(){
     if(this.props.navigation.getParam('id') 
@@ -125,6 +143,7 @@ class Personalize extends React.PureComponent {
     userRef.on("value",snap=>{
       snap.forEach(child=>{
         if(child.val().userId==host.uid){    
+
           callback(child.val())
         }
       })
@@ -192,7 +211,7 @@ class Personalize extends React.PureComponent {
     return <View style ={styles.drawerUserContainer}>
       <Button transparent onPress={()=>this.UpdateAvatar()}>
         <Thumbnail source={{uri: sender.avatar}} />
-        <Spinner visible={this.state.loadAvatar} />
+        {/* <Spinner visible={this.state.loadAvatar} /> */}
       </Button>
         <H3 style={styles.username}>
           {sender.name}
@@ -221,6 +240,14 @@ class Personalize extends React.PureComponent {
     console.log(key)
     FirebaseSvc.database().ref('relationship/'+key +'/').remove()
     host.relationship = 'notRelationship'
+    this.setState(
+      {
+        visibleDelete: true,
+      },
+      () => {
+        this.hideToastDelete();
+      },
+    );
   }
   deleteRequest (){
     if(host.uid < this.user.uid){
@@ -271,6 +298,14 @@ class Personalize extends React.PureComponent {
       }
     )
     host.relationship = 'invited'
+    this.setState(
+      {
+        visibleSend: true,
+      },
+      () => {
+        this.hideToastSend();
+      },
+    );
   }
   chat(){
     this.props.navigation.navigate("Chat", {
@@ -280,13 +315,26 @@ class Personalize extends React.PureComponent {
       avatar:this.state.sender.avatar
     });
   }
+  hideToastDelete = () => {
+    this.setState({
+      visibleDelete: false,
+    });
+  };
+  hideToastSend = () => {
+    this.setState({
+      visibleSend: false,
+    });
+  };
   componentDidMount = async()=> {
     this._isMounted = true;
+
     await this.getRelationship()
     this.getSender((res) => this.setState({sender: res}))
-    if(host.relationship == 'notRelationship'){
+    
       this.getUser((res) => this.setState({user: res}))
-    }
+    if(this.state.sender.email!=''){
+      this.state.loading=false
+    }  
     
   }
 
@@ -354,6 +402,7 @@ class Personalize extends React.PureComponent {
                  width:'100%'
                  }}>
                 <Text>Bạn có muốn hủy lời mời kết bạn?</Text>
+                <Toast visible={this.state.visibleDelete} message="Hủy lời mời thành công" />
                 <Button rounded small light style={{alignSelf: 'center'}} onPress={()=>this.deleteRequest()}>
                   <Text>Hủy lời mời kết bạn</Text>
                 </Button>
@@ -367,6 +416,7 @@ class Personalize extends React.PureComponent {
                  width:'100%'
                  }}>
                 <Text>Bạn có muốn kết bạn?</Text>
+                <Toast visible={this.state.visibleSend} message="Gửi lời mời thành công" />
                 <Button rounded small light style={{alignSelf: 'center'}} onPress={()=>this.sendRequest()}>
                   <Text>Gửi lời mời kết bạn</Text>
                 </Button>

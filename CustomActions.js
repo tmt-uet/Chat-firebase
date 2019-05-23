@@ -38,24 +38,24 @@ export default class CustomActions extends React.Component {
   //   });
   // }
   onActionsPress() {
-    navigator.geolocation.getCurrentPosition(
-       (position) => {
-         console.log("wokeeey");
-         console.log(position);
+    // navigator.geolocation.getCurrentPosition(
+    //    (position) => {
+    //      console.log("wokeeey");
+    //      console.log(position);
          this.props.onSend({
           text:'',
           location: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            // latitude: 21.0391661,
-            // longitude: 105.7848302,
+            // latitude: position.coords.latitude,
+            // longitude: position.coords.longitude,
+            latitude: 21.0385162,
+            longitude: 105.7819986,
           },
           image:'',
          });
-       },
-       (error) => this.setState({ error: error.message }),
-       { enableHighAccuracy: false, timeout: 200000, maximumAge: 1000 },
-     );
+      //  },
+    //    (error) => this.setState({ error: error.message }),
+    //    { enableHighAccuracy: false, timeout: 200000, maximumAge: 1000 },
+    //  );
    }
 
 
@@ -110,7 +110,7 @@ export default class CustomActions extends React.Component {
     }
     return (
       <View>
-        <Icon name='map-marker-alt' size={28} style={{color:'#3399ff'}}></Icon>
+        <Icon name='map-marker-alt' size={28} style={{color:'#3399ff'}}/>
       </View>
     );
   }
