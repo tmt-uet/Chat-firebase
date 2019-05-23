@@ -16,7 +16,8 @@ import {Platform,
         TouchableWithoutFeedback,
         Keyboard,
         ImageBackground,
-        ActivityIndicator} from 'react-native';
+        ActivityIndicator,
+      AsyncStorage} from 'react-native';
 // import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -48,7 +49,7 @@ export default class Login extends Component{
     name: 'Alex B',
     email: 'test3@gmail.com',
     password: 'test123',
-    avatar: '',
+    avatar: 'testthu',
     }
 
     constructor(props) {
@@ -61,11 +62,6 @@ export default class Login extends Component{
     
   login = async (user,success_callback,failed_callback) =>{
     console.log("logging in");
-    // User=FirebaseSvc.auth().currentUser.uid
-    // await AsyncStorage.setItem("email", User.email);
-    // await AsyncStorage.setItem("name", this.state.name);
-    // await AsyncStorage.setItem("uid", User.uid);
-    // await AsyncStorage.setItem("avatar", this.state.avatar);
     const output = await FirebaseSvc.auth().signInWithEmailAndPassword(user.email, user.password)
     .then(success_callback, failed_callback);
     // console.log(FirebaseSvc.auth().currentUser.uid)
@@ -93,9 +89,21 @@ export default class Login extends Component{
         );
       
     };
-  
-    loginSuccess = () => {
+    testAsync=async()=>{
+      let a=await AsyncStorage.getItem("avatar")
+      console.log('aaaaaaaaaaaaaaaaaaaaassssssssssssss')
+      console.log(a)
+
+    }
+    loginSuccess = async () => {
       console.log('login successful, navigate to chat.');
+      await AsyncStorage.multiSet([
+        ["email", this.state.email],
+        ["avatar", this.state.avatar],
+        ['name', this.state.name],
+    ]) 
+    console.log('avatarrrrrrrrrrrrr'+this.state.avatar)
+    this.testAsync()
 
 
       this.props.navigation.navigate('Home', {

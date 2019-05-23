@@ -10,6 +10,7 @@ import {
   Right,
   Badge, Thumbnail, H3,Button
 } from "native-base";
+import {AsyncStorage} from 'react-native'
 //import {connect} from "react-redux";
 //import firebase from "react-native-firebase";
 import styles from "./style";
@@ -22,6 +23,7 @@ import FirebaseSvc from '../FirebaseSvc'
 import Spinner from "react-native-loading-spinner-overlay";
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { exportDefaultSpecifier } from "@babel/types";
+
 var options = {
   title: 'Select Avatar',
   customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
@@ -31,48 +33,105 @@ var options = {
   },
 };
 
-
+var host={isHost:false, uid:'', relationship:''};
 class Personalize extends React.PureComponent {
+  state ={
+    loadAvatar : false,
+    key:'',
+    sender: {},
+    loading:true,
+    nameHost : '',
+    avatarHost:''
+  }
   constructor(props) {
     super(props);
     this._isMounted = false;
-    this.state ={
-      loadAvatar : false,
-      isHost:this.props.navigation.getParam('isHost'),
-      key:''
-    }
+
+    // console.log('userprop', sender)
     this.user=FirebaseSvc.auth().currentUser;
-    if(this.props.navigation.getParam('id') && this.props.navigation.getParam('id') == this.user.uid){
-      this.state={
-        uid : this.props.navigation.getParam('id'),
-        isHost: true
-      }
+    this.getHost();
+  }
+  getHost(){
+    if(this.props.navigation.getParam('id') 
+      && this.props.navigation.getParam('id') == this.user.uid
+    ){
+      host.uid = this.props.navigation.getParam('id')
+      host.isHost= true
     }
-    if(this.props.navigation.getParam('id') && this.props.navigation.getParam('id') != this.user.uid){
-      this.state={
-        uid : this.props.navigation.getParam('id'),
-        isHost: false
-      }
+
+    if(this.props.navigation.getParam('id') 
+      && this.props.navigation.getParam('id') != this.user.uid
+      ){
+        host.uid = this.props.navigation.getParam('id'),
+        host.isHost= false
     }
     if(!this.props.navigation.getParam('id') ){
-      this.state={
-        uid:this.user.uid,
-        isHost:true
-      }
+        host.uid=this.user.uid,
+        host.isHost=true
     }
-    this.getSender(res=>{this.sender=res})
-    console.log('userprop', this.sender)
-    
   }
+  getRelationship(){
+    if(host.isHost == false){
+      if(this.props.navigation.getParam('relationship') ){
+        host.relationship = this.props.navigation.getParam('relationship')
+      }else{
+        const relationshipRef= this.getRef().child("relationship")
+        relationshipRef.on("value",snap=>{
+          snap.forEach(child=>{
+            if(child.val().SendId==host.uid 
+              && child.val().ResId == this.user.uid
+              && child.val().State == 0){    
+                host.relationship = 'isInvited'
+                return;
+            }else if(child.val().ResId==host.uid 
+              && child.val().SendId == this.user.uid
+              && child.val().State == 0){
+                host.relationship = 'invited'
+                return;
+            }else if( child.val().ResId==host.uid 
+              && child.val().SendId == this.user.uid
+              && child.val().State == 1){
+                host.relationship='friend'
+                return;
+            }else if( child.val().SendId==host.uid 
+              && child.val().ResId == this.user.uid
+              && child.val().State == 1){
+                host.relationship='friend'
+                return;
+            }   
+          })
+          host.relationship = 'notRelationship'
+        })
+
+      }
+    }else{
+      host.relationship = 'host'
+    }
+  }
+  getRef(){
+    return FirebaseSvc.database().ref()
+  }
+  getSender(callback){
+    
+    const userRef= this.getRef().child("users")
+    userRef.on("value",snap=>{
+      snap.forEach(child=>{
+        if(child.val().userId==host.uid){    
+          callback(child.val())
+        }
+      })
+    })
+  }
+
   async UploadAvatar(avatar){
     this.friendsRef = this.getRef().child("users");
-    console.log('uid', this.friendsRef)
+    // console.log('uid', this.friendsRef)
     await this.friendsRef.on("value", snap => {
       // get children as an array
       snap.forEach(child => {
         if (child.val().email == this.user.email)
         {
-          console.log('key', child.key)
+          // console.log('key', child.key)
         this.setState({
           key:child.key
         })
@@ -102,10 +161,7 @@ class Personalize extends React.PureComponent {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        // const source = { uri: response.uri };
         const source = { uri: 'data:image/jpeg;base64,' + response.data };
-
-        console.log("anh day nayyyyyyyyy     "+source.uri)
         this.UploadAvatar(source.uri)
     }})
   
@@ -113,32 +169,19 @@ class Personalize extends React.PureComponent {
   UpdateEmail(){
     alert('')
   }
-  getRef(){
-    return FirebaseSvc.database().ref()
-  }
-  getSender(callback){
-    
-    const userRef= this.getRef().child("users")
-    userRef.on("value",snap=>{
-      snap.forEach(child=>{
-        if(child.val().userId==this.state.uid)
-          callback(child.val())
-      })
-    })
-
-  }
+  
   renderUserContainer = () => {
+    let {sender} = this.state;
     return <View style ={styles.drawerUserContainer}>
       <Button transparent onPress={()=>this.UpdateAvatar()}>
-        <Thumbnail source={{uri: this.sender.avatar}} />
+        <Thumbnail source={{uri: sender.avatar}} />
         <Spinner visible={this.state.loadAvatar} />
       </Button>
         <H3 style={styles.username}>
-          {this.sender.name}
+          {sender.name}
         </H3>
-        <Text style = {styles.small}>{this.sender.email}</Text>
+        <Text style = {styles.small}>{sender.email}</Text>
       </View>
-   // return <View><Text>Empty</Text></View>
   };
 
   onSignout = () => {
@@ -157,10 +200,86 @@ class Personalize extends React.PureComponent {
       });
     // }
   };
+  deleteR(key){
+    FirebaseSvc.database().ref('relationship/'+key +'/').remove()
+    host.relationship = 'notRelationship'
+  }
+  deleteRequest (){
+    if(host.uid < this.user.uid){
+      var key = this.user.uid + '-' + host.uid
+    }
+    else{
+      var key =  host.uid+ '-' + this.user.uid 
+    }
+    Alert.alert(
+      'Xác nhận',
+      'Bạn có chắc chắn muốn hủy?',
+      [
+        {text: 'Hủy', onPress: () => console.log('Hủy thành công')},
+        {text: 'OK', onPress: () => this.deleteR(key)},
+      ]
+    );
+  }
 
+  acceptRequest(){
+    if(host.uid < this.user.uid){
+      var key = this.user.uid + '-' + host.uid
+    }
+    else{
+      var key =  host.uid+ '-' + this.user.uid 
+    }
+    FirebaseSvc.database().ref('relationship/'+key +'/').update({State:1})
+    host.relationship = 'friend'
+  }
+  sendRequest= async()=>{
+    console.log('co chay ddc kkkkkkkkkkkkkkk')
+    await AsyncStorage.getItem('name').then((data) => {
+      console.log('day co gi kkkkkkk',data)
 
+      this.setState({
+        nameHost:data, 
+      })
+    }).done()
+    await AsyncStorage.getItem('avatar').then((data) => {
+      this.setState({
+        avatarHost:data, 
+      })
+    }).done()
+    if(host.uid < this.user.uid){
+      var key = this.user.uid + '-' + host.uid
+    }
+    else{
+      var key =  host.uid+ '-' + this.user.uid 
+    }
+    console.log('bbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+    console.log(this.state.avatarHost)
+    console.log('nnnnnnnnnnnnnnnnnnnnnnnn')
+
+    FirebaseSvc.database().ref('relationship/'+key +'/').update(
+      {
+        ResId: host.uid,
+        SendId: this.user.uid,
+        ResName: this.state.sender.name,
+        SendName: this.state.nameHost,
+        ResAvatar:this.state.sender.avatar,
+        SendAvatar:this.state.avatarHost,
+        State:0
+      }
+    )
+    host.relationship = 'invited'
+  }
+  chat(){
+    this.props.navigation.navigate("Chat", {
+      name: this.state.sender.name,
+      email: this.state.sender.email,
+      uid: host.uid,
+      avatar:this.state.sender.avatar
+    });
+  }
   componentDidMount() {
     this._isMounted = true;
+    this.getRelationship()
+    this.getSender((res) => this.setState({sender: res}))
   }
 
   componentWillUnmount(){
@@ -168,19 +287,84 @@ class Personalize extends React.PureComponent {
   }
 
   render() {
+   let {sender} = this.state
     return (
       <Container style={{ zIndex: 2 }}>
         <Content
           bounces={false}
           style={{ flex: 1, backgroundColor: "#fff", top: -1, zIndex: 3 }}
         >
-        
           <ImageBackground source={drawerCover} style={styles.drawerCover}>
             <Button transparent onPress={()=>this.props.navigation.navigate('Home')}>
               <Ionicons name='md-arrow-back' size={28} style={{color:'white', marginLeft:10}}></Ionicons>
             </Button>
             {this.renderUserContainer()}
           </ImageBackground>
+          <View>
+            {host.relationship == 'friend' ?
+              <View style={{justifyContent:'center',
+                 alignItems:'center',
+                 width:'100%'
+                 }}>
+                <Text>Các bạn hiện đang là bạn bè của nhau. </Text>
+                <Text>Bạn có muốn hủy kết bạn?</Text>
+                <View style={{flex:1, flexDirection:'row'}}>
+                  <Button rounded small info 
+                    style={{alignSelf: 'center', flex:1, margin:15}} 
+                    onPress={()=>this.chat()}>
+                    <Text>Nhắn tin</Text>
+                  </Button>
+                  <Button rounded small light 
+                    style={{alignSelf: 'center', flex:1, margin:15}} 
+                    onPress={()=>this.deleteRequest()}>
+                    <Text>Hủy kết bạn</Text>
+                  </Button>
+                </View>
+                
+              </View>
+              :null
+            }
+            {
+              host.relationship == 'isInvited'?
+              <View style={{justifyContent:'center',
+                 alignItems:'center',
+                 width:'100%'
+                 }}>
+                <Text>Bạn có muốn chấp nhận lời mời kết bạn?</Text>
+                <Button rounded small success onPress={this.acceptRequest()}><Text>Đồng ý</Text></Button>
+                <Button rounded small light style={{alignSelf: 'center'}} onPress={()=>this.deleteRequest()}>
+                  <Text>Từ chối</Text>
+                </Button>
+              </View>
+              :null
+            }
+            {
+              host.relationship == 'invited'?
+              <View style={{justifyContent:'center',
+                 alignItems:'center',
+                 width:'100%'
+                 }}>
+                <Text>Bạn có muốn hủy lời mời kết bạn?</Text>
+                <Button rounded small light style={{alignSelf: 'center'}} onPress={()=>this.deleteRequest()}>
+                  <Text>Hủy lời mời kết bạn</Text>
+                </Button>
+              </View>
+              :null
+            }
+            {
+              host.relationship == 'notRelationship'?
+              <View style={{justifyContent:'center',
+                 alignItems:'center',
+                 width:'100%'
+                 }}>
+                <Text>Bạn có muốn kết bạn?</Text>
+                <Button rounded small light style={{alignSelf: 'center'}} onPress={()=>this.sendRequest()}>
+                  <Text>Gửi lời mời kết bạn</Text>
+                </Button>
+              </View>
+              :null
+            }
+          </View>
           <List>
             <ListItem button noBorder>
               <Left>
@@ -190,7 +374,7 @@ class Personalize extends React.PureComponent {
                   style={{ color: "#777", fontSize: 26, width: 30 }}
                 />
                 <Text style={styles.text}>
-                  {this.sender.email}
+                  {sender.email}
                 </Text>
               </Left>
             </ListItem>
@@ -198,11 +382,11 @@ class Personalize extends React.PureComponent {
               <Left>
                 <Icon
                   active
-                  name='crown'
+                  name='mars-stroke'
                   style={{ color: "#777", fontSize: 26, width: 30 }}
                 />
                 <Text style={styles.text}>
-                  {this.sender.sex}
+                  {sender.sex}
                 </Text>
               </Left>
             </ListItem>
@@ -214,7 +398,7 @@ class Personalize extends React.PureComponent {
                   style={{ color: "#777", fontSize: 26, width: 30 }}
                 />
                 <Text style={styles.text}>
-                  {this.sender.age}
+                  {sender.age}
                 </Text>
               </Left>
             </ListItem>
@@ -226,18 +410,18 @@ class Personalize extends React.PureComponent {
                   style={{ color: "#777", fontSize: 26, width: 30 }}
                 />
                 <Text style={styles.text}>
-                  {this.sender.national}
+                  {sender.national}
                 </Text>
               </Left>
             </ListItem>
           </List>
           
           <List style={{borderTopWidth: 0.5, borderTopColor: "#777777c9", marginTop: 15}}>
-          {this.state.isHost ?
+          {host.isHost ?
             <ListItem
               button
               noBorder
-              onPress={()=>this.props.navigation.navigate('Edit', {user:this.sender})}
+              onPress={()=>this.props.navigation.navigate('Edit', {user:sender})}
             >
               <Left>
                 <Icon
@@ -252,37 +436,34 @@ class Personalize extends React.PureComponent {
             </ListItem>
             :null
           }
-          
+          {host.isHost ? 
             <ListItem
-              button
-              noBorder
-              onPress={this.onSignout}
-            >
-              <Left>
-                <Icon
-                  active
-                  name="sign-out-alt"
-                  style={{ color: "#777", fontSize: 26, width: 30 }}
-                />
-                <Text style={styles.text}>
-                  Đăng xuất
-                </Text>
-              </Left>
+            button
+            noBorder
+            onPress={this.onSignout}
+          >
+            <Left>
+              <Icon
+                active
+                name="sign-out-alt"
+                style={{ color: "#777", fontSize: 26, width: 30 }}
+              />
+              <Text style={styles.text}>
+                Đăng xuất
+              </Text>
+            </Left>
 
-            </ListItem>
+          </ListItem>  
+          : null
+         }
+            
           </List>
+          {/* <Spinner visible={this.state.loading} /> */}
         </Content>
       </Container>
     );
   }
 }
 
-// const mapStateToProps = state => ({
-//   auth: state.user
-// });
-
-// const mapDispatchToProps = dispatch => ({
-//   dispatch: dispatch
-// });
 
 export default Personalize;

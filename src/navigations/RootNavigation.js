@@ -8,20 +8,24 @@ import Chat from '../screens/Chat'
 import ListChat from '../screens/Home/ListChat'
 import SettingsScreen from '../screens/Home/SettingsScreen'
 import getTabBarIcon from '../screens/Home/Icon'
-// import Home from '../screens/Home/Home'
+import Icon from "react-native-vector-icons/FontAwesome5";
 import Personalize from '../screens/Personalize'
 import createAccount from '../screens/createAccount'
 import Edit from '../screens/Edit'
 import Ionicons from 'react-native-vector-icons/Ionicons'
-
-// const pressAvatar= createStackNavigator(
+import Friend from './../screens/Friend/index'
+import Friends from '../screens/Friend/Friends'
+import RequestFriend from '../screens/Friend/RequestFriend';
+import User from '../screens/Friend/User';
+// const Person= createStackNavigator(
 //   {
-    
-//     Chat: Chat,
-//     Personalize:Personalize
+//     Friend: Friend,
+//     Friends: Friends,
+//     RequestFriend:RequestFriend,
+//     User: User
 //   },
 //   {
-//     initialRouteName:'Chat'
+//     initialRouteName:'User'
 //   }
 // )
 
@@ -38,9 +42,28 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
  const Home = createAppContainer(
   createBottomTabNavigator(
     {
-      "Trang chủ": { screen: ListChat },
-      "Bạn bè" : 
-      "Cài đặt": { screen: Personalize },
+      "Trang chủ": { 
+        screen: ListChat,
+        navigationOptions: {
+          tabBarIcon: ({tintColor}) =>
+            <Icon name="home" size={25} color={tintColor} />
+            
+        }
+      },
+      "Bạn bè" : {
+        screen: Friend,
+        navigationOptions: {
+          tabBarIcon: ({tintColor}) =>
+            <Icon name="user-friends" size={25} color={tintColor} />
+        }
+      },
+      "Cài đặt": { 
+        screen: Personalize,
+        navigationOptions: {
+          tabBarIcon: ({tintColor}) =>
+            <Icon name="user-cog" size={25} color={tintColor} />
+        }
+      },
 
     },
     // {
@@ -79,7 +102,10 @@ const RootStack = createSwitchNavigator(
      ListChat: ListChat,
     Chat: Chat,
     Personalize:Personalize,
-    Edit:Edit
+    Edit:Edit,
+    Friend: Friend,
+    // Friends: Friends,
+
   },
   {
     initialRouteName: 'Login',  

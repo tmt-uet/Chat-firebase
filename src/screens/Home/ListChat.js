@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import {
   View,
-
+  ImageBackground,
   StyleSheet,
   TouchableOpacity,
   ListView,
@@ -9,7 +9,8 @@ import {
   Button,
   TextInput,
   ScrollView,
-  FlatList
+  FlatList,
+  AsyncStorage
 } from "react-native";
 
 import { StackNavigator } from "react-navigation";
@@ -53,31 +54,47 @@ export default class ListChat extends Component {
 
   async listenForItems(friendsRef) {
     var user = FirebaseSvc.auth().currentUser;
-    console.log('----------')
-    console.log("user",user.uid)
+    // console.log('----------')
+    // console.log("user",user.uid)
     await friendsRef.on("value", async snap => {
       // get children as an array
       var items = [];
-      await snap.forEach(child => {
-        if (child.val().uid != user.uid)
-          console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-          console.log(child.val())
+      await snap.forEach(async child => {
+        if (child.val().uid == user.uid && child.val().friend !== user.id){
           items.push({
-            name: child.val().name,
+            name: child.val().nameFr,
             uid: child.val().friend,
             email: child.val().emailFr,
+            avatar: child.val().avatarFr,
+            text: child.val().text,
+            createdAt: child.val().createdAt,
+          });
+          // await AsyncStorage.setItem("avatar", child.val().avatar)
+        }
+        if (child.val().friend == user.uid && child.val().uid !== user.uid ){
+          // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+          // console.log(child.val())
+          items.push({
+            name: child.val().name,
+            uid: child.val().uid,
+            email: child.val().email,
             avatar: child.val().avatar,
             text: child.val().text,
             createdAt: child.val().createdAt,
           });
-      });
-      
-      var a = JSON.stringify(items)
-      this.setState({
-       
-        loading: false,
-        data :JSON.parse(a)
-      });
+          // await AsyncStorage.setItem("avatar", child.val().avatarFr)
+         
+        }
+          
+        });
+        // let b = await AsyncStorage.getItem('avatar')
+        // console.log('kkkkkkkkkkkkkkkkkkkkkkkk', b)
+        var a = JSON.stringify(items)
+        this.setState({
+        
+          loading: false,
+          data :JSON.parse(a)
+        });
     });
   }
 
@@ -92,20 +109,20 @@ export default class ListChat extends Component {
       elevation: null
     },
   };
-  getTime(time){
+  getTime(time){  
     var t = new Date(time)
     var hours = t.getHours()
-    var minutes = t.getMinutes()
+    var minutes = t.getMinutes()                                                                                                                                                                                                                                                                                  
     return hours + ':'+ minutes
   }
   renderRow = rowData => {
-    console.log()
+    // console.log(rowData.item)
     return (
        <Content >
           <List >
             <ListItem avatar onPress={() => {
               name = rowData.item.name;
-              email = rowData.item.emailFr;
+              email = rowData.item.email;
               uid = rowData.item.uid;
               avatar = rowData.item.avatar;
               this.props.navigation.navigate("Chat", {
@@ -135,7 +152,8 @@ export default class ListChat extends Component {
     const {data} = this.state
      const filteredName = data.filter(createFilter(this.state.searchTerm, KEYS_TO_FILTERS))
     return (
-      <View >
+      
+        <View >
         <Header style={{backgroundColor: '#4db8ff', width :'100%'}}>
           <SearchInput 
             onChangeText={(term) => { this.searchUpdated(term) }} 
@@ -143,7 +161,11 @@ export default class ListChat extends Component {
             placeholder="Tìm bạn bè ..."
             />
         </Header>
+        {/* <ImageBackground>                                                                                                                                                                                                                                                                                           
+          
+        </ImageBackground> */}
         <ScrollView>
+          
           <FlatList
             data={filteredName}
             renderItem={this.renderRow}
@@ -151,7 +173,9 @@ export default class ListChat extends Component {
           />
         </ScrollView>
         <Spinner visible={this.state.loading} />
+     
       </View>
+      
     );
   }
 }

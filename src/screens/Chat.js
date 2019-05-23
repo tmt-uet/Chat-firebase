@@ -52,7 +52,7 @@ export default class Chat extends React.Component {
     email = params.email;
     avatar = params.avatar
     
-    console.log("User dang login nayyyyyyyy:   " + uid);
+    console.log("User chat nayyyyyyyy:   " + uid);
 
     console.log("email cua thang trong room chat day neeeeeeeeeeeeeeeee    "+ email);
     this.chatRef=this.getRef().child("chat/"+this.generateChatId())
@@ -86,6 +86,7 @@ export default class Chat extends React.Component {
     chatRef.on("value", snap => {
       // get children as an array
       var items = [];
+      var text = ''
       // console.log(this.user,userId)
       snap.forEach(child => {
         if(child.val().uid == this.user.uid){
@@ -113,7 +114,25 @@ export default class Chat extends React.Component {
             image:child.val().image
           });
         }
-        
+        if(child.val().image !== ''){
+          text='Nhận hình ảnh'
+        }else{
+          text=child.val().text
+        }
+        var now = new Date().getTime();
+        FirebaseSvc.database().ref('newChat/' + this.generateChatId() +'/').update({
+          _id: now,
+          text: text,
+          createdAt: now,
+          uid: this.user.uid,
+          order: -1 * now,
+          friend: uid,
+          nameFr: name, 
+          avatarFr: avatar,
+          emailFr : email,
+          email:this.sender.email,
+          avatar:this.sender.avatar
+        });
       });
       console.log("--------------------------------------");
       console.log(items);
@@ -173,9 +192,12 @@ export default class Chat extends React.Component {
         uid: this.user.uid,
         order: -1 * now,
         friend: uid,
-        name: name, 
-        avatar: avatar,
-        emailFr : email
+        nameFr: name, 
+        avatarFr: avatar,
+        emailFr : email,
+        name: this.sender.name,
+        avatar : this.sender.avatar,
+        email: this.sender.email
       });
     });
     // console.log(this.state.messages)
@@ -194,14 +216,17 @@ export default class Chat extends React.Component {
     });
     FirebaseSvc.database().ref('newChat/' + this.generateChatId +'/').update({
       _id: now,
-      name:name,
+      nameFr:name,
       text: 'Gửi hình ảnh',
       createdAt: now,
       uid: this.user.uid,
       order: -1 * now,
       friend:uid,
-      avatar:avatar, 
-      emailFr: email
+      avatarFr:avatar, 
+      emailFr: email,
+      name: this.sender.name,
+      email:this.sender.email,
+      avatar: this.sender.avatar
     });
   }
 
@@ -292,9 +317,9 @@ export default class Chat extends React.Component {
 
 
   handleAvatarPress=(temp_user)=>{
-    console.log('------------------------')
+    console.log('------------------------')                                           
     console.log('id',temp_user._id)
-    this.props.navigation.navigate('Personalize', {id : temp_user._id})
+    this.props.navigation.navigate('Personalize', {id : temp_user._id                                                                                           })
   }
 
   renderAudio = props => {
